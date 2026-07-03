@@ -10,22 +10,47 @@ public class Agente {
     private String salt;
     private String hashPassword;
     private Date fechaCreacion;
-    private int estado; // 0 = Desconectado, 1 = Disponible
+
+    // 0 = Desconectado, 1 = Disponible, 3 = Pausado
+    private int estado;
+
+    /*
+     * Roles:
+     * 1 = Administrador
+     * 2 = Agente
+     * 3 = Farmacia
+     * 4 = Vista total
+     */
     private int rol;
+
     private String staffID;
     private Date ultimaFechaActivo;
     private String tiempoActivo;
     private Integer tiempoActivoHoySegundos;
     private String tiempoActivoHoy;
-    private int deleted; // 0 = Activo, 1 = Eliminado
+
+    // 0 = Activo, 1 = Eliminado
+    private int deleted;
 
     public Agente() {
     }
 
-    public Agente(int idUsuario, String nombre, String codigo, String salt, String hashPassword,
-                  Date fechaCreacion, int estado, int rol, String staffID, Date ultimaFechaActivo,
-                  String tiempoActivo, Integer tiempoActivoHoySegundos, String tiempoActivoHoy,
-                  int deleted) {
+    public Agente(
+            int idUsuario,
+            String nombre,
+            String codigo,
+            String salt,
+            String hashPassword,
+            Date fechaCreacion,
+            int estado,
+            int rol,
+            String staffID,
+            Date ultimaFechaActivo,
+            String tiempoActivo,
+            Integer tiempoActivoHoySegundos,
+            String tiempoActivoHoy,
+            int deleted
+    ) {
         this.idUsuario = idUsuario;
         this.nombre = nombre;
         this.codigo = codigo;
@@ -154,31 +179,53 @@ public class Agente {
         this.deleted = deleted;
     }
 
-   public String getEstadoDescripcion() {
-    if (estado == 1) {
-        return "Disponible";
-    }
+    // ============================================================
+    // Métodos auxiliares
+    // ============================================================
 
-    if (estado == 3) {
-        return "Pausado";
+    public String getEstadoDescripcion() {
+        switch (estado) {
+            case 1:
+                return "Disponible";
+            case 3:
+                return "Pausado";
+            default:
+                return "Desconectado";
+        }
     }
-
-    return "Desconectado";
-}
 
     public String getRolDescripcion() {
-        if (rol == 1) {
-            return "Administrador";
+        switch (rol) {
+            case 1:
+                return "Administrador";
+            case 2:
+                return "Agente";
+            case 3:
+                return "Farmacia";
+            case 4:
+                return "Vista total";
+            default:
+                return "Otro";
         }
-
-        if (rol == 2) {
-            return "Agente";
-        }
-
-        return "Otro";
     }
 
     public String getDeletedDescripcion() {
         return deleted == 1 ? "Eliminado" : "Activo";
+    }
+
+    public boolean isAdministrador() {
+        return rol == 1;
+    }
+
+    public boolean isAgente() {
+        return rol == 2;
+    }
+
+    public boolean isFarmacia() {
+        return rol == 3;
+    }
+
+    public boolean isVistaTotal() {
+        return rol == 4;
     }
 }

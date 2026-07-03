@@ -130,6 +130,16 @@
             color: #212529;
         }
 
+        .badge-farmacia {
+            background-color: #20c997;
+            color: #ffffff;
+        }
+
+        .badge-vista-total {
+            background-color: #6f42c1;
+            color: #ffffff;
+        }
+
         .modal-content {
             border-radius: 18px;
             border: none;
@@ -211,6 +221,17 @@
 <%
     List<Agente> agentes = (List<Agente>) request.getAttribute("agentes");
 
+    Integer rolSesion = (Integer) request.getAttribute("rolSesion");
+
+    if (rolSesion == null) {
+        Agente agenteSesion = (Agente) session.getAttribute("usuarioObj");
+        rolSesion = agenteSesion != null ? agenteSesion.getRol() : 2;
+    }
+
+    boolean puedeGestionarRolesAltos = rolSesion == 4;
+    boolean esAdministrador = rolSesion == 1;
+    boolean esVistaTotal = rolSesion == 4;
+
     String swalIcon = (String) session.getAttribute("swal_icon");
     String swalTitle = (String) session.getAttribute("swal_title");
     String swalText = (String) session.getAttribute("swal_text");
@@ -226,19 +247,32 @@
     int totalDesconectados = 0;
     int totalPausados = 0;
     int totalAdmins = 0;
+    int totalFarmacias = 0;
+    int totalVistaTotal = 0;
 
     if (agentes != null) {
         for (Agente a : agentes) {
-if (a.getEstado() == 1) {
-    totalDisponibles++;
-} else if (a.getEstado() == 3) {
-    totalPausados++;
-} else {
-    totalDesconectados++;
-}
+
+            if (a.getRol() != 3) {
+                if (a.getEstado() == 1) {
+                    totalDisponibles++;
+                } else if (a.getEstado() == 3) {
+                    totalPausados++;
+                } else {
+                    totalDesconectados++;
+                }
+            }
 
             if (a.getRol() == 1) {
                 totalAdmins++;
+            }
+
+            if (a.getRol() == 3) {
+                totalFarmacias++;
+            }
+
+            if (a.getRol() == 4) {
+                totalVistaTotal++;
             }
         }
     }
@@ -267,9 +301,20 @@ if (a.getEstado() == 1) {
                 <span class="badge bg-secondary fs-6">
                     <%= totalDesconectados %> desconectados
                 </span>
+
                 <span class="badge bg-warning text-dark fs-6">
-    <%= totalPausados %> pausados
-</span>
+                    <%= totalPausados %> pausados
+                </span>
+
+                <% if (puedeGestionarRolesAltos) { %>
+                    <span class="badge badge-farmacia fs-6">
+                        <%= totalFarmacias %> farmacia(s)
+                    </span>
+
+                    <span class="badge badge-vista-total fs-6">
+                        <%= totalVistaTotal %> vista total
+                    </span>
+                <% } %>
 
                 <button class="btn btn-info-soft" data-bs-toggle="modal" data-bs-target="#modalNuevoAgente">
                     Nuevo Agente
@@ -284,6 +329,7 @@ if (a.getEstado() == 1) {
                 <h6 class="content-card-title">Listado de agentes</h6>
                 <p class="content-card-subtitle">
                     Consulta, edita, elimina lógicamente o cambia disponibilidad de los agentes.
+                    Las farmacias no manejan disponibilidad.
                 </p>
             </div>
 
@@ -320,63 +366,74 @@ if (a.getEstado() == 1) {
                             <td><%= a.getCodigo() == null ? "" : a.getCodigo() %></td>
                             <td><%= a.getStaffID() == null ? "" : a.getStaffID() %></td>
 
-<td>
-    <% if (a.getEstado() == 1) { %>
-        <span class="badge badge-disponible">Disponible</span>
-    <% } else if (a.getEstado() == 3) { %>
-        <span class="badge bg-warning text-dark">Pausado</span>
-    <% } else { %>
-        <span class="badge badge-desconectado">Desconectado</span>
-    <% } %>
-</td>
-<td>
-    <% if (a.getEstado() == 1 && a.getUltimaFechaActivo() != null) { %>
+                            <td>
+                                <% if (a.getRol() == 3) { %>
+                                    <span class="text-muted small">No aplica</span>
+                                <% } else if (a.getEstado() == 1) { %>
+                                    <span class="badge badge-disponible">Disponible</span>
+                                <% } else if (a.getEstado() == 3) { %>
+                                    <span class="badge bg-warning text-dark">Pausado</span>
+                                <% } else { %>
+                                    <span class="badge badge-desconectado">Desconectado</span>
+                                <% } %>
+                            </td>
 
-        <div class="small">
-            <div>
-                <span class="text-muted">Actual:</span>
-                <span class="badge bg-light text-dark border tiempo-activo"
-                      data-inicio="<%= a.getUltimaFechaActivo().getTime() %>">
-                    <%= a.getTiempoActivo() == null ? "00h 00m 00s" : a.getTiempoActivo() %>
-                </span>
-            </div>
+                            <td>
+                                <% if (a.getRol() == 3) { %>
 
-            <div class="mt-1">
-                <span class="text-muted">Hoy:</span>
-                <span class="badge bg-info text-dark tiempo-activo-hoy"
-                      data-inicio="<%= a.getUltimaFechaActivo().getTime() %>"
-                      data-hoy-segundos="<%= a.getTiempoActivoHoySegundos() == null ? 0 : a.getTiempoActivoHoySegundos() %>">
-                    <%= a.getTiempoActivoHoy() == null ? "00h 00m 00s" : a.getTiempoActivoHoy() %>
-                </span>
-            </div>
-        </div>
+                                    <span class="text-muted small">No aplica</span>
 
-    <% } else { %>
+                                <% } else if (a.getEstado() == 1 && a.getUltimaFechaActivo() != null) { %>
 
-        <div class="small">
-            <div>
-                <span class="text-muted">Actual:</span>
-                <span class="text-muted">00h 00m 00s</span>
-            </div>
+                                    <div class="small">
+                                        <div>
+                                            <span class="text-muted">Actual:</span>
+                                            <span class="badge bg-light text-dark border tiempo-activo"
+                                                  data-inicio="<%= a.getUltimaFechaActivo().getTime() %>">
+                                                <%= a.getTiempoActivo() == null ? "00h 00m 00s" : a.getTiempoActivo() %>
+                                            </span>
+                                        </div>
 
-            <div class="mt-1">
-                <span class="text-muted">Hoy:</span>
-                <span class="badge bg-info text-dark">
-                    <%= a.getTiempoActivoHoy() == null ? "00h 00m 00s" : a.getTiempoActivoHoy() %>
-                </span>
-            </div>
-        </div>
+                                        <div class="mt-1">
+                                            <span class="text-muted">Hoy:</span>
+                                            <span class="badge bg-info text-dark tiempo-activo-hoy"
+                                                  data-inicio="<%= a.getUltimaFechaActivo().getTime() %>"
+                                                  data-hoy-segundos="<%= a.getTiempoActivoHoySegundos() == null ? 0 : a.getTiempoActivoHoySegundos() %>">
+                                                <%= a.getTiempoActivoHoy() == null ? "00h 00m 00s" : a.getTiempoActivoHoy() %>
+                                            </span>
+                                        </div>
+                                    </div>
 
-    <% } %>
-</td>
+                                <% } else { %>
 
-<td>
-    <% if (a.getRol() == 1) { %>
-        <span class="badge badge-admin">Administrador</span>
-    <% } else { %>
-        <span class="badge badge-agente">Agente</span>
-    <% } %>
-</td>
+                                    <div class="small">
+                                        <div>
+                                            <span class="text-muted">Actual:</span>
+                                            <span class="text-muted">00h 00m 00s</span>
+                                        </div>
+
+                                        <div class="mt-1">
+                                            <span class="text-muted">Hoy:</span>
+                                            <span class="badge bg-info text-dark">
+                                                <%= a.getTiempoActivoHoy() == null ? "00h 00m 00s" : a.getTiempoActivoHoy() %>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                <% } %>
+                            </td>
+
+                            <td>
+                                <% if (a.getRol() == 1) { %>
+                                    <span class="badge badge-admin">Administrador</span>
+                                <% } else if (a.getRol() == 3) { %>
+                                    <span class="badge badge-farmacia">Farmacia</span>
+                                <% } else if (a.getRol() == 4) { %>
+                                    <span class="badge badge-vista-total">Vista total</span>
+                                <% } else { %>
+                                    <span class="badge badge-agente">Agente</span>
+                                <% } %>
+                            </td>
 
                             <td><%= a.getFechaCreacion() == null ? "" : a.getFechaCreacion() %></td>
 
@@ -406,30 +463,34 @@ if (a.getEstado() == 1) {
                                         </button>
                                     </form>
 
-<form method="post"
-      action="<%= request.getContextPath() %>/agente"
-      class="d-inline">
-    <input type="hidden" name="accion" value="cambiarEstado">
-    <input type="hidden" name="id_usuario" value="<%= a.getIdUsuario() %>">
-    <input type="hidden" name="estado" value="<%= a.getEstado() == 1 ? 0 : 1 %>">
-    <button type="submit"
-            class="btn btn-sm btn-action <%= a.getEstado() == 1 ? "btn-outline-dark" : "btn-outline-success" %>">
-        <%= a.getEstado() == 1 ? "Desconectar" : "Conectar" %>
-    </button>
-</form>
+                                    <% if (a.getRol() != 3) { %>
 
-<% if (a.getEstado() == 1) { %>
-    <form method="post"
-          action="<%= request.getContextPath() %>/agente"
-          class="d-inline">
-        <input type="hidden" name="accion" value="cambiarEstado">
-        <input type="hidden" name="id_usuario" value="<%= a.getIdUsuario() %>">
-        <input type="hidden" name="estado" value="3">
-        <button type="submit" class="btn btn-sm btn-warning btn-action">
-            Pausar
-        </button>
-    </form>
-<% } %>
+                                        <form method="post"
+                                              action="<%= request.getContextPath() %>/agente"
+                                              class="d-inline">
+                                            <input type="hidden" name="accion" value="cambiarEstado">
+                                            <input type="hidden" name="id_usuario" value="<%= a.getIdUsuario() %>">
+                                            <input type="hidden" name="estado" value="<%= a.getEstado() == 1 ? 0 : 1 %>">
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-action <%= a.getEstado() == 1 ? "btn-outline-dark" : "btn-outline-success" %>">
+                                                <%= a.getEstado() == 1 ? "Desconectar" : "Conectar" %>
+                                            </button>
+                                        </form>
+
+                                        <% if (a.getEstado() == 1) { %>
+                                            <form method="post"
+                                                  action="<%= request.getContextPath() %>/agente"
+                                                  class="d-inline">
+                                                <input type="hidden" name="accion" value="cambiarEstado">
+                                                <input type="hidden" name="id_usuario" value="<%= a.getIdUsuario() %>">
+                                                <input type="hidden" name="estado" value="3">
+                                                <button type="submit" class="btn btn-sm btn-warning btn-action">
+                                                    Pausar
+                                                </button>
+                                            </form>
+                                        <% } %>
+
+                                    <% } %>
 
                                 </div>
                             </td>
@@ -480,20 +541,25 @@ if (a.getEstado() == 1) {
                         <input type="text" name="StaffID" class="form-control" maxlength="50">
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-6" id="nuevo_estado_container">
                         <label class="form-label">Estado</label>
-<select name="estado" class="form-select">
-    <option value="0">Desconectado</option>
-    <option value="1">Disponible</option>
-    <option value="3">Pausado</option>
-</select>
+                        <select name="estado" id="nuevo_estado" class="form-select">
+                            <option value="0">Desconectado</option>
+                            <option value="1">Disponible</option>
+                            <option value="3">Pausado</option>
+                        </select>
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Rol</label>
-                        <select name="rol" class="form-select">
+                        <select name="rol" id="nuevo_rol" class="form-select">
                             <option value="2">Agente</option>
-                            <option value="1">Administrador</option>
+
+                            <% if (puedeGestionarRolesAltos) { %>
+                                <option value="1">Administrador</option>
+                                <option value="3">Farmacia</option>
+                                <option value="4">Vista total</option>
+                            <% } %>
                         </select>
                     </div>
 
@@ -540,20 +606,25 @@ if (a.getEstado() == 1) {
                         <input type="text" name="StaffID" id="edit_StaffID" class="form-control" maxlength="50">
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-3" id="edit_estado_container">
                         <label class="form-label">Estado</label>
-<select name="estado" id="edit_estado" class="form-select">
-    <option value="0">Desconectado</option>
-    <option value="1">Disponible</option>
-    <option value="3">Pausado</option>
-</select>
+                        <select name="estado" id="edit_estado" class="form-select">
+                            <option value="0">Desconectado</option>
+                            <option value="1">Disponible</option>
+                            <option value="3">Pausado</option>
+                        </select>
                     </div>
 
                     <div class="col-md-3">
                         <label class="form-label">Rol</label>
                         <select name="rol" id="edit_rol" class="form-select">
                             <option value="2">Agente</option>
-                            <option value="1">Administrador</option>
+
+                            <% if (puedeGestionarRolesAltos) { %>
+                                <option value="1">Administrador</option>
+                                <option value="3">Farmacia</option>
+                                <option value="4">Vista total</option>
+                            <% } %>
                         </select>
                     </div>
 
@@ -583,13 +654,23 @@ if (a.getEstado() == 1) {
                 url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/es-ES.json'
             },
             pageLength: 10,
-            order: [[0, 'desc']]
+            order: [[6, 'asc'], [0, 'desc']]
         });
 
         window.__inicioPaginaMs = new Date().getTime();
 
         actualizarTiemposActivos();
         setInterval(actualizarTiemposActivos, 1000);
+
+        $('#nuevo_rol').on('change', function () {
+            aplicarReglasRolFormulario('nuevo');
+        });
+
+        $('#edit_rol').on('change', function () {
+            aplicarReglasRolFormulario('edit');
+        });
+
+        aplicarReglasRolFormulario('nuevo');
     });
 
     function abrirEditar(idUsuario, nombre, codigo, staffID, estado, rol) {
@@ -600,8 +681,27 @@ if (a.getEstado() == 1) {
         document.getElementById('edit_estado').value = estado;
         document.getElementById('edit_rol').value = rol;
 
+        aplicarReglasRolFormulario('edit');
+
         const modal = new bootstrap.Modal(document.getElementById('modalEditarAgente'));
         modal.show();
+    }
+
+    function aplicarReglasRolFormulario(prefix) {
+        const selectRol = document.getElementById(prefix + '_rol');
+        const selectEstado = document.getElementById(prefix + '_estado');
+        const contenedorEstado = document.getElementById(prefix + '_estado_container');
+
+        if (!selectRol || !selectEstado || !contenedorEstado) {
+            return;
+        }
+
+        if (selectRol.value === "3") {
+            contenedorEstado.classList.add("d-none");
+            selectEstado.value = "0";
+        } else {
+            contenedorEstado.classList.remove("d-none");
+        }
     }
 
     function confirmarEliminar(e, form) {
@@ -663,17 +763,13 @@ if (a.getEstado() == 1) {
                 return;
             }
 
-            /*
-             * TiempoActivoHoySegundos viene del SP calculado al momento
-             * de cargar la página. Si el agente sigue disponible,
-             * aquí solo sumamos los segundos transcurridos desde la carga.
-             */
             const totalHoy = hoySegundosBase + segundosDesdeCarga;
 
             el.textContent = formatearDuracion(totalHoy);
         });
     }
 </script>
+
 <% if (swalIcon != null) { %>
 <script>
     Swal.fire({

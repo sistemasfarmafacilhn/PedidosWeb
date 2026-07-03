@@ -10,6 +10,10 @@ public class PedidoAsignado {
     private long idControlPedido;
     private String staffID;
     private String nombreAgente;
+
+    private Integer rolAsignado;
+    private String rolAsignadoDescripcion;
+
     private int estadoControl;
     private String estadoControlDescripcion;
     private Timestamp fechaAsignacion;
@@ -84,6 +88,22 @@ public class PedidoAsignado {
 
     public void setNombreAgente(String nombreAgente) {
         this.nombreAgente = nombreAgente;
+    }
+
+    public Integer getRolAsignado() {
+        return rolAsignado;
+    }
+
+    public void setRolAsignado(Integer rolAsignado) {
+        this.rolAsignado = rolAsignado;
+    }
+
+    public String getRolAsignadoDescripcion() {
+        return rolAsignadoDescripcion;
+    }
+
+    public void setRolAsignadoDescripcion(String rolAsignadoDescripcion) {
+        this.rolAsignadoDescripcion = rolAsignadoDescripcion;
     }
 
     public int getEstadoControl() {

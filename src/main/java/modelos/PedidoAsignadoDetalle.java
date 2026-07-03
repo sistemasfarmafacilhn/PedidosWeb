@@ -16,6 +16,7 @@ public class PedidoAsignadoDetalle {
 
     private boolean isCanje;
     private String canjePromocion;
+    private String descuentoTipo;
 
     private Timestamp fechaRegistroDetalle;
 
@@ -92,6 +93,14 @@ public class PedidoAsignadoDetalle {
 
     public void setCanjePromocion(String canjePromocion) {
         this.canjePromocion = canjePromocion;
+    }
+
+    public String getDescuentoTipo() {
+        return descuentoTipo;
+    }
+
+    public void setDescuentoTipo(String descuentoTipo) {
+        this.descuentoTipo = descuentoTipo;
     }
 
     public Timestamp getFechaRegistroDetalle() {

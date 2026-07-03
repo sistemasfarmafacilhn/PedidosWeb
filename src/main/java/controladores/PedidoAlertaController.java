@@ -9,6 +9,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import modelos.Agente;
 import modelos.AlertaPedido;
 
@@ -18,7 +21,7 @@ public class PedidoAlertaController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json;charset=UTF-8");
 
@@ -32,10 +35,16 @@ public class PedidoAlertaController extends HttpServlet {
         Agente agente = (Agente) session.getAttribute("usuarioObj");
 
         /*
-         * Solo agentes normales deben recibir alerta.
-         * Admin rol = 1 ve todos, pero no debe recibir alerta individual.
-         */
-        if (agente.getRol() == 1) {
+            Roles:
+            1 = Administrador
+            2 = Agente / Delivery
+            3 = Farmacia
+            4 = Vista total
+
+            Solo rol 2 y rol 3 deben recibir alerta individual.
+            Rol 1 y rol 4 no deben recibir alerta.
+        */
+        if (agente.getRol() == 1 || agente.getRol() == 4) {
             response.getWriter().write("{\"nuevo\":false,\"admin\":true}");
             return;
         }
@@ -50,8 +59,22 @@ public class PedidoAlertaController extends HttpServlet {
         String ultimoIdStr = request.getParameter("ultimoIdControlPedido");
         long ultimoIdControlPedido = parseLongOrDefault(ultimoIdStr, 0);
 
+        /*
+            Fecha que viene desde el JSP.
+            Debe venir en formato yyyy-MM-dd.
+
+            Si viene vacía o inválida, se manda NULL al SP
+            y el SP usa su rango por defecto.
+        */
+        String fechaStr = request.getParameter("fecha");
+        Date fechaFiltro = parseDateOrNull(fechaStr);
+
         PedidoAsignadoDAO dao = new PedidoAsignadoDAO();
-        AlertaPedido alerta = dao.verificarNuevoPedidoAsignado(staffID, ultimoIdControlPedido);
+        AlertaPedido alerta = dao.verificarNuevoPedidoAsignado(
+                staffID,
+                ultimoIdControlPedido,
+                fechaFiltro
+        );
 
         String json = construirJson(alerta);
 
@@ -83,7 +106,9 @@ public class PedidoAlertaController extends HttpServlet {
         sb.append("\"customerPhone\":\"").append(escapeJson(alerta.getCustomerPhone())).append("\",");
         sb.append("\"total\":\"").append(escapeJson(total)).append("\",");
         sb.append("\"fechaAsignacion\":\"").append(
-                alerta.getFechaAsignacion() != null ? escapeJson(alerta.getFechaAsignacion().toString()) : ""
+                alerta.getFechaAsignacion() != null
+                        ? escapeJson(alerta.getFechaAsignacion().toString())
+                        : ""
         ).append("\"");
         sb.append("}");
 
@@ -114,6 +139,20 @@ public class PedidoAlertaController extends HttpServlet {
             return Long.parseLong(value.trim());
         } catch (NumberFormatException ex) {
             return defaultValue;
+        }
+    }
+
+    private Date parseDateOrNull(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            sdf.setLenient(false);
+            return sdf.parse(value.trim());
+        } catch (ParseException ex) {
+            return null;
         }
     }
 }

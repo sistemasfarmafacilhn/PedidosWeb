@@ -1,4 +1,31 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page import="modelos.Agente" %>
+
+<%
+    Agente agenteSesion = null;
+    int rol = 2;
+    boolean esFarmacia = false;
+
+    if (session != null) {
+        Object usuarioObj = session.getAttribute("usuarioObj");
+
+        if (usuarioObj != null && usuarioObj instanceof Agente) {
+            agenteSesion = (Agente) usuarioObj;
+            rol = agenteSesion.getRol();
+        } else {
+            Object rolSesion = session.getAttribute("rol");
+            if (rolSesion != null) {
+                try {
+                    rol = Integer.parseInt(rolSesion.toString());
+                } catch (NumberFormatException ex) {
+                    rol = 2;
+                }
+            }
+        }
+    }
+
+    esFarmacia = rol == 3;
+%>
 
 <!DOCTYPE html>
 <html lang="es">
@@ -116,6 +143,61 @@
             font-size: .9rem;
         }
 
+        /* ============================================================
+           TEMA FARMACIA
+           rol = 3
+           Color principal: #a7c957
+           ============================================================ */
+
+        body.vista-farmacia {
+            background: #f4f8ec !important;
+        }
+
+        body.vista-farmacia .page-header-card,
+        body.vista-farmacia .content-card {
+            background: #fbfdf6 !important;
+            border-color: rgba(167, 201, 87, .40) !important;
+        }
+
+        body.vista-farmacia .page-title,
+        body.vista-farmacia .content-card-title {
+            color: #6f8f24 !important;
+        }
+
+        body.vista-farmacia .content-card-header {
+            background: rgba(167, 201, 87, .25) !important;
+            border-left-color: #a7c957 !important;
+        }
+
+        body.vista-farmacia .btn-info-soft {
+            background-color: #a7c957 !important;
+            border-color: #a7c957 !important;
+            color: #1f2d0b !important;
+        }
+
+        body.vista-farmacia .btn-info-soft:hover {
+            background-color: #95b94c !important;
+            border-color: #95b94c !important;
+            color: #1f2d0b !important;
+        }
+
+        body.vista-farmacia .btn-light-soft {
+            background-color: #eef6df !important;
+            border-color: rgba(167, 201, 87, .45) !important;
+            color: #1f2d0b !important;
+        }
+
+        body.vista-farmacia .form-control:focus {
+            border-color: #a7c957 !important;
+            box-shadow: 0 0 0 .2rem rgba(167, 201, 87, .25) !important;
+        }
+
+        body.vista-farmacia .password-rules {
+            background: #eef6df !important;
+            border-color: rgba(167, 201, 87, .45) !important;
+            color: #6c757d !important;
+        }
+
         @media (max-width: 768px) {
             .page-wrapper {
                 padding: 1rem;
@@ -128,7 +210,7 @@
     </style>
 </head>
 
-<body>
+<body class="<%= esFarmacia ? "vista-farmacia" : "" %>">
 
 <jsp:include page="/vistas/navbar.jsp" />
 
@@ -230,6 +312,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    const colorConfirmacion = <%= esFarmacia ? "'#a7c957'" : "'#0dcaf0'" %>;
+
     function validarPassword() {
         const passwordActual = document.getElementById('password_actual').value;
         const password = document.getElementById('password').value;
@@ -240,7 +324,7 @@
                 icon: 'error',
                 title: 'Validación',
                 text: 'Debe ingresar la contraseña actual.',
-                confirmButtonColor: '#0dcaf0'
+                confirmButtonColor: colorConfirmacion
             });
             return false;
         }
@@ -250,7 +334,7 @@
                 icon: 'error',
                 title: 'Validación',
                 text: 'Debe ingresar la nueva contraseña.',
-                confirmButtonColor: '#0dcaf0'
+                confirmButtonColor: colorConfirmacion
             });
             return false;
         }
@@ -260,7 +344,7 @@
                 icon: 'error',
                 title: 'Validación',
                 text: 'Debe confirmar la nueva contraseña.',
-                confirmButtonColor: '#0dcaf0'
+                confirmButtonColor: colorConfirmacion
             });
             return false;
         }
@@ -270,7 +354,7 @@
                 icon: 'error',
                 title: 'Validación',
                 text: 'La nueva contraseña y la confirmación no coinciden.',
-                confirmButtonColor: '#0dcaf0'
+                confirmButtonColor: colorConfirmacion
             });
             return false;
         }
@@ -280,7 +364,7 @@
                 icon: 'warning',
                 title: 'Validación',
                 text: 'La nueva contraseña no debería ser igual a la contraseña actual.',
-                confirmButtonColor: '#0dcaf0'
+                confirmButtonColor: colorConfirmacion
             });
             return false;
         }
@@ -295,7 +379,7 @@
         icon: '<%= swalIcon %>',
         title: '<%= swalTitle == null ? "" : swalTitle %>',
         text: '<%= swalText == null ? "" : swalText %>',
-        confirmButtonColor: '#0dcaf0',
+        confirmButtonColor: colorConfirmacion,
         confirmButtonText: 'Aceptar'
     });
 </script>

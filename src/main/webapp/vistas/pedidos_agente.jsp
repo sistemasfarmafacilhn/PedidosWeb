@@ -5,12 +5,31 @@
 <%@ page import="modelos.Agente" %>
 <%@ page import="java.math.BigDecimal" %>
 
+<%
+    modelos.Agente agenteSesion = (modelos.Agente) session.getAttribute("usuarioObj");
+
+    int rolAgente = agenteSesion != null ? agenteSesion.getRol() : 2;
+
+    boolean esAdmin = rolAgente == 1;
+    boolean esFarmacia = rolAgente == 3;
+    boolean esVistaTotal = rolAgente == 4;
+
+    /*
+        rol 1 = Administrador: ve pedidos que no sean farmacia.
+        rol 4 = Vista total: ve todos, incluyendo farmacia.
+        rol 2 = Agente: gestiona sus pedidos.
+        rol 3 = Farmacia: gestiona sus pickup.
+    */
+    boolean mostrarAccionesPedido = !esAdmin && !esVistaTotal;
+    boolean mostrarEstadoAgente = rolAgente == 2;
+%>
+
 <!DOCTYPE html>
 <html lang="es">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Mis Pedidos Asignados</title>
+        <title><%= esFarmacia ? "Pedidos de Farmacia" : "Mis Pedidos Asignados" %></title>
 
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -193,10 +212,96 @@
                 padding-top: 12px;
                 padding-bottom: 4px;
             }
+
             .pago-aprobado {
-    background-color: #5fc3a7 !important; /* azul verdoso */
-    border-color: #3fa68a !important;     /* opcional: bordes un poco más oscuros */
-}
+                background-color: #5fc3a7 !important;
+                border-color: #3fa68a !important;
+            }
+
+            /* ============================================================
+               TEMA FARMACIA
+               rol = 3
+               Color principal: #a7c957
+               ============================================================ */
+
+            body.vista-farmacia {
+                background: #f4f8ec;
+            }
+
+            body.vista-farmacia .loader-text {
+                color: #a7c957 !important;
+            }
+
+            body.vista-farmacia .spinner-border.text-info {
+                color: #a7c957 !important;
+            }
+
+            body.vista-farmacia .text-info,
+            body.vista-farmacia .text-order {
+                color: #6f8f24 !important;
+            }
+
+            body.vista-farmacia .btn-info {
+                background-color: #a7c957 !important;
+                border-color: #a7c957 !important;
+                color: #1f2d0b !important;
+            }
+
+            body.vista-farmacia .btn-outline-info {
+                color: #6f8f24 !important;
+                border-color: #a7c957 !important;
+            }
+
+            body.vista-farmacia .btn-outline-info:hover,
+            body.vista-farmacia .btn-outline-info.active {
+                background-color: #a7c957 !important;
+                border-color: #a7c957 !important;
+                color: #1f2d0b !important;
+            }
+
+            body.vista-farmacia .badge.bg-info {
+                background-color: #a7c957 !important;
+                color: #1f2d0b !important;
+            }
+
+            body.vista-farmacia .estado-abierto {
+                border-left-color: #a7c957 !important;
+            }
+
+            body.vista-farmacia .estado-abierto .estado-header {
+                background: rgba(167, 201, 87, .25) !important;
+            }
+
+            body.vista-farmacia .estado-scroll::-webkit-scrollbar-thumb {
+                background: #a7c957 !important;
+            }
+
+            body.vista-farmacia .table-info {
+                --bs-table-bg: rgba(167, 201, 87, .25);
+                --bs-table-color: #1f2d0b;
+                border-color: rgba(167, 201, 87, .45);
+            }
+
+            body.vista-farmacia .total-box {
+                border-color: rgba(167, 201, 87, .45);
+            }
+
+            body.vista-farmacia .pedido-card {
+                background: #eef6df;
+                border-color: rgba(167, 201, 87, .40);
+            }
+
+            body.vista-farmacia .pedido-card .card-footer {
+                background: #f4f8ec !important;
+            }
+
+            body.vista-farmacia .bg-white {
+                background-color: #fbfdf6 !important;
+            }
+
+            body.vista-farmacia .empty-state {
+                background: #fbfdf6;
+            }
 
             @media (max-width: 576px) {
                 .estado-header {
@@ -228,7 +333,7 @@
         </style>
     </head>
 
-    <body>
+    <body class="<%= esFarmacia ? "vista-farmacia" : "" %>">
 
         <jsp:include page="/vistas/navbar.jsp" />
 
@@ -282,56 +387,56 @@
                     }
                 }
             }
+
+            int estadoAgente = 0;
+            int nuevoEstadoAgente = 1;
+            String textoEstadoAgente = "Desconectado";
+            String claseEstadoAgente = "btn-outline-success";
+            String textoBotonEstadoAgente = "Cambiar a Disponible";
+
+            if (agenteSesion != null) {
+                estadoAgente = agenteSesion.getEstado();
+
+                if (estadoAgente == 1) {
+                    nuevoEstadoAgente = 0;
+                    textoEstadoAgente = "Disponible";
+                    claseEstadoAgente = "btn-outline-danger";
+                    textoBotonEstadoAgente = "Cambiar a Desconectado";
+                } else if (estadoAgente == 3) {
+                    nuevoEstadoAgente = 1;
+                    textoEstadoAgente = "Pausado";
+                    claseEstadoAgente = "btn-outline-success";
+                    textoBotonEstadoAgente = "Cambiar a Disponible";
+                } else {
+                    nuevoEstadoAgente = 1;
+                    textoEstadoAgente = "Desconectado";
+                    claseEstadoAgente = "btn-outline-success";
+                    textoBotonEstadoAgente = "Cambiar a Disponible";
+                }
+            }
         %>
 
         <div class="container-fluid py-4 px-2 px-md-4">
 
-            <%
-                modelos.Agente agenteSesion = (modelos.Agente) session.getAttribute("usuarioObj");
-
-                int rolAgente = agenteSesion != null ? agenteSesion.getRol() : 2;
-                boolean mostrarAccionesPedido = rolAgente != 1;
-
-                int estadoAgente = 0;
-                int nuevoEstadoAgente = 1;
-                String textoEstadoAgente = "Desconectado";
-                String claseEstadoAgente = "btn-outline-success";
-                String textoBotonEstadoAgente = "Cambiar a Disponible";
-
-                if (agenteSesion != null) {
-                    estadoAgente = agenteSesion.getEstado();
-
-if (estadoAgente == 1) {
-    nuevoEstadoAgente = 0;
-    textoEstadoAgente = "Disponible";
-    claseEstadoAgente = "btn-outline-danger";
-    textoBotonEstadoAgente = "Cambiar a Desconectado";
-} else if (estadoAgente == 3) {
-    nuevoEstadoAgente = 1;
-    textoEstadoAgente = "Pausado";
-    claseEstadoAgente = "btn-outline-success";
-    textoBotonEstadoAgente = "Cambiar a Disponible";
-} else {
-    nuevoEstadoAgente = 1;
-    textoEstadoAgente = "Desconectado";
-    claseEstadoAgente = "btn-outline-success";
-    textoBotonEstadoAgente = "Cambiar a Disponible";
-}
-                }
-            %>
-
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <div>
-                    <h3 class="m-0 text-info">Mis Pedidos Asignados</h3>
+                    <h3 class="m-0 text-info">
+                        <%= esFarmacia ? "Pedidos de Farmacia" : "Mis Pedidos Asignados" %>
+                    </h3>
+
                     <div class="text-muted small">
-                        Agente: <strong><%= agenteNombre%></strong>
+                        <%= esFarmacia ? "Farmacia" : "Agente" %>: <strong><%= agenteNombre %></strong>
 
                         <% if (!staffID.trim().isEmpty()) { %>
-                            | StaffID: <strong><%= staffID%></strong>
+                            | StaffID: <strong><%= staffID %></strong>
                         <% } %>
 
-                        <% if (mostrarAccionesPedido) { %>
-                            | Estado: <strong><%= textoEstadoAgente%></strong>
+                        <% if (mostrarEstadoAgente) { %>
+                            | Estado: <strong><%= textoEstadoAgente %></strong>
+                        <% } else if (esFarmacia) { %>
+                            | Rol: <strong>Farmacia</strong>
+                        <% } else if (esVistaTotal) { %>
+                            | Rol: <strong>Vista total</strong>
                         <% } else { %>
                             | Rol: <strong>Administrador</strong>
                         <% } %>
@@ -340,41 +445,41 @@ if (estadoAgente == 1) {
 
                 <div class="d-flex flex-wrap gap-2 align-items-center">
 
-<% if (mostrarAccionesPedido) { %>
-
-<form method="POST"
-      action="<%= request.getContextPath()%>/pedidos-agente"
-      class="m-0 form-sin-loader"
-      onsubmit="return confirmarCambioEstadoAgente(event, this);">
-
-    <input type="hidden" name="accion" value="cambiarEstadoAgente">
-    <input type="hidden" name="estado" value="<%= nuevoEstadoAgente%>">
-    <input type="hidden" name="password" class="passwordEstadoAgente" value="">
-
-    <button type="submit" class="btn btn-sm <%= claseEstadoAgente%>">
-        <%= textoBotonEstadoAgente%>
-    </button>
-</form>
-
-    <% if (estadoAgente == 1) { %>
-        <form method="POST"
-              action="<%= request.getContextPath()%>/pedidos-agente"
-              class="m-0 form-sin-loader"
-              onsubmit="return confirmarPausarAgente(event, this);">
-
-            <input type="hidden" name="accion" value="cambiarEstadoAgente">
-            <input type="hidden" name="estado" value="3">
-
-            <button type="submit" class="btn btn-sm btn-warning text-dark">
-                Pausar
-            </button>
-        </form>
-    <% } %>
-
-<% } else { %>
+                    <% if (mostrarEstadoAgente) { %>
 
                         <form method="POST"
-                              action="<%= request.getContextPath()%>/pedidos-agente"
+                              action="<%= request.getContextPath() %>/pedidos-agente"
+                              class="m-0 form-sin-loader"
+                              onsubmit="return confirmarCambioEstadoAgente(event, this);">
+
+                            <input type="hidden" name="accion" value="cambiarEstadoAgente">
+                            <input type="hidden" name="estado" value="<%= nuevoEstadoAgente %>">
+                            <input type="hidden" name="password" class="passwordEstadoAgente" value="">
+
+                            <button type="submit" class="btn btn-sm <%= claseEstadoAgente %>">
+                                <%= textoBotonEstadoAgente %>
+                            </button>
+                        </form>
+
+                        <% if (estadoAgente == 1) { %>
+                            <form method="POST"
+                                  action="<%= request.getContextPath() %>/pedidos-agente"
+                                  class="m-0 form-sin-loader"
+                                  onsubmit="return confirmarPausarAgente(event, this);">
+
+                                <input type="hidden" name="accion" value="cambiarEstadoAgente">
+                                <input type="hidden" name="estado" value="3">
+
+                                <button type="submit" class="btn btn-sm btn-warning text-dark">
+                                    Pausar
+                                </button>
+                            </form>
+                        <% } %>
+
+                    <% } else if (esAdmin || esVistaTotal) { %>
+
+                        <form method="POST"
+                              action="<%= request.getContextPath() %>/pedidos-agente"
                               class="m-0 form-sin-loader"
                               onsubmit="return confirmarAsignarPendientes(event, this);">
 
@@ -390,7 +495,7 @@ if (estadoAgente == 1) {
                     <% } %>
 
                     <span class="badge bg-info text-dark fs-6" id="badgeTituloEstado">
-                        <%= totalAbiertos%> abiertos
+                        <%= totalAbiertos %> abiertos
                     </span>
                 </div>
             </div>
@@ -398,7 +503,7 @@ if (estadoAgente == 1) {
             <div class="bg-white rounded-3 shadow-sm p-3 mb-4">
                 <form class="row g-3 align-items-end"
                       method="POST"
-                      action="<%= request.getContextPath()%>/pedidos-agente">
+                      action="<%= request.getContextPath() %>/pedidos-agente">
 
                     <input type="hidden" name="accion" value="filtrar">
 
@@ -407,7 +512,7 @@ if (estadoAgente == 1) {
                         <input type="date"
                                class="form-control"
                                name="fecha"
-                               value="<%= fechaSeleccionada%>">
+                               value="<%= fechaSeleccionada %>">
                     </div>
 
                     <% if (!mostrarAccionesPedido) { %>
@@ -421,13 +526,26 @@ if (estadoAgente == 1) {
                                         String agStaffID = ag.getStaffID() != null ? ag.getStaffID() : "";
                                         String agNombre = ag.getNombre() != null ? ag.getNombre() : "";
                                         boolean seleccionado = agStaffID.equals(staffIDFiltro);
+
+                                        boolean mostrarEnCombo = !agStaffID.trim().isEmpty();
+
+                                        if (esAdmin && ag.getRol() == 3) {
+                                            mostrarEnCombo = false;
+                                        }
+
+                                        if (mostrarEnCombo) {
                                 %>
-                                    <% if (!agStaffID.trim().isEmpty()) { %>
-                                        <option value="<%= agStaffID%>" <%= seleccionado ? "selected" : ""%>>
-                                            <%= agStaffID%> - <%= agNombre%>
-                                        </option>
-                                    <% } %>
-                                <%  }
+                                            <option value="<%= agStaffID %>" <%= seleccionado ? "selected" : "" %>>
+                                                <%= agStaffID %> - <%= agNombre %>
+                                                <% if (ag.getRol() == 3) { %>
+                                                    (Farmacia)
+                                                <% } else if (ag.getRol() == 4) { %>
+                                                    (Vista total)
+                                                <% } %>
+                                            </option>
+                                <%
+                                        }
+                                    }
                                 } %>
                             </select>
                         </div>
@@ -441,23 +559,24 @@ if (estadoAgente == 1) {
                         </button>
                     </div>
 
-<%
-    java.time.LocalDate hoy = java.time.LocalDate.now();
-    String fechaHoy = hoy.toString(); // yyyy-MM-dd
-%>
+                    <%
+                        java.time.LocalDate hoy = java.time.LocalDate.now();
+                        String fechaHoy = hoy.toString();
+                    %>
 
-<div class="col-12 col-md-2 d-grid">
-    <a href="<%= request.getContextPath()%>/pedidos-agente?fecha=<%= fechaHoy %>"
-       class="btn btn-outline-secondary">
-        Hoy
-    </a>
-</div>
-  <div class="col-12 col-md-2 d-grid">
-    <a href="<%= request.getContextPath() %>/pedidos-agente"
-       class="btn btn-outline-secondary">
-        Limpiar filtros
-    </a>
-</div>     
+                    <div class="col-12 col-md-2 d-grid">
+                        <a href="<%= request.getContextPath() %>/pedidos-agente?fecha=<%= fechaHoy %>"
+                           class="btn btn-outline-secondary">
+                            Hoy
+                        </a>
+                    </div>
+
+                    <div class="col-12 col-md-2 d-grid">
+                        <a href="<%= request.getContextPath() %>/pedidos-agente"
+                           class="btn btn-outline-secondary">
+                            Limpiar filtros
+                        </a>
+                    </div>
                 </form>
             </div>
 
@@ -485,7 +604,7 @@ if (estadoAgente == 1) {
                                 data-estado="0"
                                 onclick="filtrarPorEstado(0, this)">
                             Abiertos
-                            <span class="badge bg-light text-dark ms-1"><%= totalAbiertos%></span>
+                            <span class="badge bg-light text-dark ms-1"><%= totalAbiertos %></span>
                         </button>
 
                         <button type="button"
@@ -493,7 +612,7 @@ if (estadoAgente == 1) {
                                 data-estado="1"
                                 onclick="filtrarPorEstado(1, this)">
                             Cerrados
-                            <span class="badge bg-success text-white ms-1"><%= totalCerrados%></span>
+                            <span class="badge bg-success text-white ms-1"><%= totalCerrados %></span>
                         </button>
 
                         <button type="button"
@@ -501,7 +620,7 @@ if (estadoAgente == 1) {
                                 data-estado="2"
                                 onclick="filtrarPorEstado(2, this)">
                             Cancelados
-                            <span class="badge bg-danger text-white ms-1"><%= totalCancelados%></span>
+                            <span class="badge bg-danger text-white ms-1"><%= totalCancelados %></span>
                         </button>
                     </div>
 
@@ -510,7 +629,7 @@ if (estadoAgente == 1) {
 
             <% if (error != null && !error.trim().isEmpty()) { %>
                 <div class="alert alert-danger">
-                    <%= error%>
+                    <%= error %>
                 </div>
             <% } %>
 
@@ -534,7 +653,7 @@ if (estadoAgente == 1) {
                             </div>
                         </div>
 
-                        <span class="badge bg-info text-dark" id="contadorEstadoPedidos"><%= totalAbiertos%></span>
+                        <span class="badge bg-info text-dark" id="contadorEstadoPedidos"><%= totalAbiertos %></span>
                     </div>
 
                     <div class="p-3 estado-scroll">
@@ -563,20 +682,19 @@ if (estadoAgente == 1) {
                                     } else if (p.getEstadoControl() == 2) {
                                         badgeEstadoClass = "bg-danger text-white";
                                     }
+
+                                    String pedidoCardClass = "pedido-card card-hover h-100 shadow-sm";
+                                    if ("approved".equalsIgnoreCase(p.getPaymentStatus())) {
+                                        pedidoCardClass += " pago-aprobado";
+                                    }
                             %>
-                            <%
-    String pedidoCardClass = "pedido-card card-hover h-100 shadow-sm";
-    if ("approved".equalsIgnoreCase(p.getPaymentStatus())) {
-        pedidoCardClass += " pago-aprobado";
-    }
-%>
 
                             <div class="col-12 col-md-6 col-xl-4 pedido-item"
-                                 data-estado="<%= p.getEstadoControl()%>"
-                                 data-id-control="<%= p.getIdControlPedido()%>"
-                                 data-staffid="<%= p.getStaffID() != null ? p.getStaffID() : ""%>">
+                                 data-estado="<%= p.getEstadoControl() %>"
+                                 data-id-control="<%= p.getIdControlPedido() %>"
+                                 data-staffid="<%= p.getStaffID() != null ? p.getStaffID() : "" %>">
 
-                                <div class="card pedido-card card-hover h-100 shadow-sm">
+                                <div class="card <%= pedidoCardClass %>">
 
                                     <div class="card-body">
 
@@ -584,49 +702,50 @@ if (estadoAgente == 1) {
                                             <div>
                                                 <h6 class="mb-1">
                                                     <span class="text-order">Pedido:</span>
-                                                    <span><%= p.getOrderCode() != null ? p.getOrderCode() : p.getOrderIdWeb()%></span>
+                                                    <span><%= p.getOrderCode() != null ? p.getOrderCode() : p.getOrderIdWeb() %></span>
                                                 </h6>
 
                                                 <div class="text-muted small">
-                                                    Web ID: <%= p.getOrderIdWeb() != null ? p.getOrderIdWeb() : ""%>
+                                                    Web ID: <%= p.getOrderIdWeb() != null ? p.getOrderIdWeb() : "" %>
                                                 </div>
 
                                                 <div class="text-muted small">
-                                                    Asignado: <%= p.getFechaAsignacion() != null ? p.getFechaAsignacion() : ""%>
+                                                    Asignado: <%= p.getFechaAsignacion() != null ? p.getFechaAsignacion() : "" %>
                                                 </div>
 
                                                 <% if (p.getFechaCierre() != null) { %>
                                                     <div class="text-muted small">
-                                                        Cerrado: <%= p.getFechaCierre()%>
+                                                        Cerrado: <%= p.getFechaCierre() %>
                                                     </div>
                                                 <% } %>
 
                                                 <% if (p.getFechaCancelacion() != null) { %>
                                                     <div class="text-muted small">
-                                                        Cancelado: <%= p.getFechaCancelacion()%>
+                                                        Cancelado: <%= p.getFechaCancelacion() %>
                                                     </div>
                                                 <% } %>
                                             </div>
 
                                             <div class="d-flex flex-column align-items-end gap-1">
-                                                <span class="badge <%= badgeEstadoClass%> badge-estado">
-                                                    <%= p.getEstadoControlDescripcion() != null ? p.getEstadoControlDescripcion() : "Abierto"%>
+                                                <span class="badge <%= badgeEstadoClass %> badge-estado">
+                                                    <%= p.getEstadoControlDescripcion() != null ? p.getEstadoControlDescripcion() : "Abierto" %>
                                                 </span>
+
                                                 <% if (p.getDeliveryType() != null) { %>
-    <% if ("delivery".equalsIgnoreCase(p.getDeliveryType())) { %>
-        <span class="badge bg-danger text-white">En Domicilio</span>
-    <% } else if ("pickup".equalsIgnoreCase(p.getDeliveryType())) { %>
-        <span class="badge bg-danger text-white">En Tienda</span>
-    <% } %>
-<% } %>
+                                                    <% if ("delivery".equalsIgnoreCase(p.getDeliveryType())) { %>
+                                                        <span class="badge bg-danger text-white">En Domicilio</span>
+                                                    <% } else if ("pickup".equalsIgnoreCase(p.getDeliveryType())) { %>
+                                                        <span class="badge bg-danger text-white">En Tienda</span>
+                                                    <% } %>
+                                                <% } %>
 
                                                 <% if (p.isHasTransfer()) { %>
                                                     <span class="badge bg-warning text-dark">Traslado</span>
                                                 <% } %>
-                                                
+
                                                 <% if ("approved".equalsIgnoreCase(p.getPaymentStatus())) { %>
-    <span class="badge bg-success text-white">Pago Aprobado en la Web</span>
-<% } %>
+                                                    <span class="badge bg-success text-white">Pago Aprobado en la Web</span>
+                                                <% } %>
 
                                                 <% if (p.isCallcenterRequired()) { %>
                                                     <span class="badge bg-danger text-white">Callcenter</span>
@@ -637,7 +756,9 @@ if (estadoAgente == 1) {
                                         <hr class="my-2">
 
                                         <div class="info-line">
-                                            <div class="k">Agente asignado</div>
+                                            <div class="k">
+                                                <%= esFarmacia ? "Farmacia asignada" : "Agente asignado" %>
+                                            </div>
                                             <div class="v">
                                                 <%= p.getNombreAgente() != null && !p.getNombreAgente().trim().isEmpty()
                                                         ? p.getNombreAgente()
@@ -647,54 +768,55 @@ if (estadoAgente == 1) {
 
                                         <div class="info-line">
                                             <div class="k">Cliente</div>
-                                            <div class="v"><%= p.getCustomerName() != null ? p.getCustomerName() : ""%></div>
+                                            <div class="v"><%= p.getCustomerName() != null ? p.getCustomerName() : "" %></div>
                                         </div>
 
                                         <div class="info-line">
                                             <div class="k">Identificación</div>
-                                            <div class="v"><%= p.getCustomerIdentityDocument() != null ? p.getCustomerIdentityDocument() : ""%></div>
+                                            <div class="v"><%= p.getCustomerIdentityDocument() != null ? p.getCustomerIdentityDocument() : "" %></div>
                                         </div>
 
                                         <div class="info-line">
                                             <div class="k">Teléfono</div>
-                                            <div class="v"><%= p.getCustomerPhone() != null ? p.getCustomerPhone() : ""%></div>
+                                            <div class="v"><%= p.getCustomerPhone() != null ? p.getCustomerPhone() : "" %></div>
                                         </div>
 
                                         <div class="info-line">
                                             <div class="k">Persona que recibe</div>
-                                            <div class="v"><%= p.getContactName() != null ? p.getContactName() : ""%></div>
+                                            <div class="v"><%= p.getContactName() != null ? p.getContactName() : "" %></div>
                                         </div>
 
                                         <div class="info-line">
                                             <div class="k">Tel. receptor</div>
-                                            <div class="v"><%= p.getContactPhone() != null ? p.getContactPhone() : ""%></div>
+                                            <div class="v"><%= p.getContactPhone() != null ? p.getContactPhone() : "" %></div>
                                         </div>
 
                                         <div class="info-line">
                                             <div class="k">Ciudad</div>
-                                            <div class="v"><%= p.getDeliveryCity() != null ? p.getDeliveryCity() : ""%></div>
+                                            <div class="v"><%= p.getDeliveryCity() != null ? p.getDeliveryCity() : "" %></div>
                                         </div>
 
                                         <div class="info-line">
                                             <div class="k">Departamento</div>
-                                            <div class="v"><%= p.getDeliveryDepartment() != null ? p.getDeliveryDepartment() : ""%></div>
+                                            <div class="v"><%= p.getDeliveryDepartment() != null ? p.getDeliveryDepartment() : "" %></div>
                                         </div>
-                                                                                <div class="info-line">
-                                            <div class="k">Direccion</div>
-                                            <div class="v"><%= p.getDeliveryAddress()!= null ? p.getDeliveryAddress(): ""%></div>
+
+                                        <div class="info-line">
+                                            <div class="k">Dirección</div>
+                                            <div class="v"><%= p.getDeliveryAddress() != null ? p.getDeliveryAddress() : "" %></div>
                                         </div>
 
                                         <div class="info-line">
                                             <div class="k">Sucursal</div>
-                                            <div class="v"><%= p.getBranchName() != null ? p.getBranchName() : ""%></div>
+                                            <div class="v"><%= p.getBranchName() != null ? p.getBranchName() : "" %></div>
                                         </div>
 
                                         <div class="info-line">
                                             <div class="k">Pago</div>
                                             <div class="v">
-                                                <%= p.getPaymentMethod() != null ? p.getPaymentMethod() : ""%>
+                                                <%= p.getPaymentMethod() != null ? p.getPaymentMethod() : "" %>
                                                 <% if (p.getPaymentStatus() != null && !p.getPaymentStatus().trim().isEmpty()) { %>
-                                                    / <%= p.getPaymentStatus()%>
+                                                    / <%= p.getPaymentStatus() %>
                                                 <% } %>
                                             </div>
                                         </div>
@@ -702,22 +824,22 @@ if (estadoAgente == 1) {
                                         <div class="mt-3 total-box">
                                             <div class="info-line">
                                                 <div class="k">Subtotal</div>
-                                                <div class="v">L. <%= subtotalTxt%></div>
+                                                <div class="v">L. <%= subtotalTxt %></div>
                                             </div>
                                             <div class="info-line">
                                                 <div class="k">Envío</div>
-                                                <div class="v">L. <%= shippingTxt%></div>
+                                                <div class="v">L. <%= shippingTxt %></div>
                                             </div>
                                             <div class="info-line">
                                                 <div class="k">Descuento</div>
-                                                <div class="v">L. <%= discountTxt%></div>
+                                                <div class="v">L. <%= discountTxt %></div>
                                             </div>
                                             <hr class="my-2">
                                             <div class="info-line">
                                                 <div class="k fw-bold">Total</div>
                                                 <div class="v fw-bold text-info">
-                                                    <%= p.getCurrency() != null ? p.getCurrency() : "HNL"%>
-                                                    <%= totalTxt%>
+                                                    <%= p.getCurrency() != null ? p.getCurrency() : "HNL" %>
+                                                    <%= totalTxt %>
                                                 </div>
                                             </div>
                                         </div>
@@ -726,7 +848,7 @@ if (estadoAgente == 1) {
                                             <div class="alert alert-warning mt-3 mb-0 py-2">
                                                 <small>
                                                     <strong>Nota cliente:</strong>
-                                                    <%= p.getCustomerNotes()%>
+                                                    <%= p.getCustomerNotes() %>
                                                 </small>
                                             </div>
                                         <% } %>
@@ -735,7 +857,7 @@ if (estadoAgente == 1) {
                                             <div class="alert alert-secondary mt-3 mb-0 py-2">
                                                 <small>
                                                     <strong>Observación:</strong>
-                                                    <%= p.getObservacion()%>
+                                                    <%= p.getObservacion() %>
                                                 </small>
                                             </div>
                                         <% } %>
@@ -743,12 +865,12 @@ if (estadoAgente == 1) {
                                         <div class="mt-3">
                                             <a class="text-decoration-none small"
                                                data-bs-toggle="collapse"
-                                               href="#<%= collapseId%>"
+                                               href="#<%= collapseId %>"
                                                role="button">
-                                                Ver productos (<%= totalProductos%>)
+                                                Ver productos (<%= totalProductos %>)
                                             </a>
 
-                                            <div class="collapse mt-2" id="<%= collapseId%>">
+                                            <div class="collapse mt-2" id="<%= collapseId %>">
                                                 <div class="border rounded p-2 bg-light">
 
                                                     <% if (detalles == null || detalles.isEmpty()) { %>
@@ -763,6 +885,7 @@ if (estadoAgente == 1) {
                                                                     <tr>
                                                                         <th>Código</th>
                                                                         <th>Producto</th>
+                                                                        <th>Descuento</th>
                                                                         <th class="text-end">Cant.</th>
                                                                         <th class="text-end">Precio</th>
                                                                         <th class="text-end">Subtotal</th>
@@ -772,28 +895,39 @@ if (estadoAgente == 1) {
                                                                     <%
                                                                         for (PedidoAsignadoDetalle d : detalles) {
                                                                     %>
-                                                                    <tr>
-                                                                        <td><%= d.getSku() != null ? d.getSku() : ""%></td>
-                                                                        <td>
-                                                                            <%= d.getNombre() != null ? d.getNombre() : ""%>
+                                                                        <tr>
+                                                                            <td><%= d.getSku() != null ? d.getSku() : "" %></td>
+                                                                            <td>
+                                                                                <%= d.getNombre() != null ? d.getNombre() : "" %>
 
-                                                                            <% if (d.isCanje()) { %>
-                                                                                <div>
-                                                                                    <span class="badge bg-warning text-dark">
-                                                                                        Canje
+                                                                                <% if (d.isCanje()) { %>
+                                                                                    <div>
+                                                                                        <span class="badge bg-warning text-dark">
+                                                                                            Canje
+                                                                                        </span>
+                                                                                        <% if (d.getCanjePromocion() != null) { %>
+                                                                                            <small class="text-muted">
+                                                                                                <%= d.getCanjePromocion() %>
+                                                                                            </small>
+                                                                                        <% } %>
+                                                                                    </div>
+                                                                                <% } %>
+                                                                            </td>
+
+                                                                            <td>
+                                                                                <% if (d.getDescuentoTipo() != null && !d.getDescuentoTipo().trim().isEmpty()) { %>
+                                                                                    <span class="badge bg-success text-white">
+                                                                                        <%= d.getDescuentoTipo() %>
                                                                                     </span>
-                                                                                    <% if (d.getCanjePromocion() != null) { %>
-                                                                                        <small class="text-muted">
-                                                                                            <%= d.getCanjePromocion()%>
-                                                                                        </small>
-                                                                                    <% } %>
-                                                                                </div>
-                                                                            <% } %>
-                                                                        </td>
-                                                                        <td class="text-end"><%= d.getQuantity() != null ? d.getQuantity() : ""%></td>
-                                                                        <td class="text-end">L. <%= d.getUnitPrice() != null ? d.getUnitPrice() : "0.00"%></td>
-                                                                        <td class="text-end">L. <%= d.getSubtotal() != null ? d.getSubtotal() : "0.00"%></td>
-                                                                    </tr>
+                                                                                <% } else { %>
+                                                                                    <span class="text-muted small">Sin descuento</span>
+                                                                                <% } %>
+                                                                            </td>
+
+                                                                            <td class="text-end"><%= d.getQuantity() != null ? d.getQuantity() : "" %></td>
+                                                                            <td class="text-end">L. <%= d.getUnitPrice() != null ? d.getUnitPrice() : "0.00" %></td>
+                                                                            <td class="text-end">L. <%= d.getSubtotal() != null ? d.getSubtotal() : "0.00" %></td>
+                                                                        </tr>
                                                                     <%
                                                                         }
                                                                     %>
@@ -820,16 +954,16 @@ if (estadoAgente == 1) {
                                                         <button type="button"
                                                                 class="btn btn-outline-info"
                                                                 data-bs-toggle="collapse"
-                                                                data-bs-target="#<%= collapseId%>">
+                                                                data-bs-target="#<%= collapseId %>">
                                                             Productos
                                                         </button>
 
                                                         <form method="POST"
-                                                              action="<%= request.getContextPath()%>/pedidos-agente"
+                                                              action="<%= request.getContextPath() %>/pedidos-agente"
                                                               class="m-0">
                                                             <input type="hidden" name="accion" value="cerrarPedido">
-                                                            <input type="hidden" name="id_control_pedido" value="<%= p.getIdControlPedido()%>">
-                                                            <input type="hidden" name="id_pedido_gestion" value="<%= p.getIdPedidoGestion()%>">
+                                                            <input type="hidden" name="id_control_pedido" value="<%= p.getIdControlPedido() %>">
+                                                            <input type="hidden" name="id_pedido_gestion" value="<%= p.getIdPedidoGestion() %>">
                                                             <input type="hidden" name="fecha" value="<%= fechaSeleccionada %>">
                                                             <input type="hidden" name="staffIDFiltro" value="<%= staffIDFiltro %>">
 
@@ -841,14 +975,14 @@ if (estadoAgente == 1) {
                                                         </form>
 
                                                         <form method="POST"
-                                                              action="<%= request.getContextPath()%>/pedidos-agente"
+                                                              action="<%= request.getContextPath() %>/pedidos-agente"
                                                               class="m-0">
                                                             <input type="hidden" name="accion" value="cancelarPedido">
-                                                            <input type="hidden" name="id_control_pedido" value="<%= p.getIdControlPedido()%>">
-                                                            <input type="hidden" name="id_pedido_gestion" value="<%= p.getIdPedidoGestion()%>">
+                                                            <input type="hidden" name="id_control_pedido" value="<%= p.getIdControlPedido() %>">
+                                                            <input type="hidden" name="id_pedido_gestion" value="<%= p.getIdPedidoGestion() %>">
                                                             <input type="hidden" name="observacion" class="observacionCancelacion">
                                                             <input type="hidden" name="fecha" value="<%= fechaSeleccionada %>">
-<input type="hidden" name="staffIDFiltro" value="<%= staffIDFiltro %>">
+                                                            <input type="hidden" name="staffIDFiltro" value="<%= staffIDFiltro %>">
 
                                                             <button type="button"
                                                                     class="btn btn-outline-danger w-100"
@@ -863,7 +997,7 @@ if (estadoAgente == 1) {
 
                                                     <div class="alert alert-light border text-center mb-0">
                                                         <small class="text-muted">
-                                                            Pedido <%= p.getEstadoControlDescripcion() != null ? p.getEstadoControlDescripcion().toLowerCase() : ""%>.
+                                                            Pedido <%= p.getEstadoControlDescripcion() != null ? p.getEstadoControlDescripcion().toLowerCase() : "" %>.
                                                             No requiere acción.
                                                         </small>
                                                     </div>
@@ -912,15 +1046,15 @@ if (estadoAgente == 1) {
                 text = text.replace("\\", "\\\\").replace("\"", "\\\"")
                         .replace("\n", "\\n").replace("\r", "");
         %>
-        <script>
-            Swal.fire({
-                icon: "<%= icon%>",
-                title: "<%= title%>",
-                text: "<%= text%>",
-                confirmButtonColor: "#0dcaf0",
-                confirmButtonText: "Aceptar"
-            });
-        </script>
+                <script>
+                    Swal.fire({
+                        icon: "<%= icon %>",
+                        title: "<%= title %>",
+                        text: "<%= text %>",
+                        confirmButtonColor: "<%= esFarmacia ? "#a7c957" : "#0dcaf0" %>",
+                        confirmButtonText: "Aceptar"
+                    });
+                </script>
         <%
             }
         %>
@@ -930,6 +1064,9 @@ if (estadoAgente == 1) {
         <script>
             const contextPath = "<%= request.getContextPath() %>";
             const pollingPedidosActivo = <%= mostrarAccionesPedido ? "true" : "false" %>;
+            const esFarmacia = <%= esFarmacia ? "true" : "false" %>;
+            const colorPrincipal = esFarmacia ? "#a7c957" : "#0dcaf0";
+
             let ultimoIdControlPedido = 0;
             let verificandoNuevoPedido = false;
             let modoAsignacionActual = "ASIGNADOS";
@@ -956,119 +1093,148 @@ if (estadoAgente == 1) {
                 ocultarLoader();
             });
 
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll("form").forEach(f => {
-        f.addEventListener("submit", function () {
-            if (!f.classList.contains("form-sin-loader")) {
-                mostrarLoader();
+            document.addEventListener("DOMContentLoaded", function () {
+                document.querySelectorAll("form").forEach(f => {
+                    f.addEventListener("submit", function () {
+                        if (!f.classList.contains("form-sin-loader")) {
+                            mostrarLoader();
+                        }
+                    });
+                });
+
+                actualizarTextoAsignacion();
+                inicializarUltimoIdControlPedido();
+
+                if (pollingPedidosActivo) {
+                    verificarNuevoPedidoAsignado();
+                    setInterval(verificarNuevoPedidoAsignado, 10000);
+                }
+
+                const btnAbiertos = document.querySelector('.filtro-estado[data-estado="0"]');
+                const estadoBoxPedidos = document.getElementById("estadoBoxPedidos");
+
+                if (btnAbiertos && estadoBoxPedidos) {
+                    filtrarPorEstado(0, btnAbiertos);
+                }
+            });
+
+            function filtrarPorEstado(estado, btn) {
+                const items = document.querySelectorAll(".pedido-item");
+                const estadoBox = document.getElementById("estadoBoxPedidos");
+                const emptyBox = document.getElementById("emptyEstadoActual");
+                const emptyTitulo = document.getElementById("emptyTituloEstado");
+                const emptyTexto = document.getElementById("emptyTextoEstado");
+
+                let contador = 0;
+
+                items.forEach(item => {
+                    const estadoItem = parseInt(item.getAttribute("data-estado"));
+                    const staffID = item.getAttribute("data-staffid");
+
+                    let cumpleEstado = estadoItem === estado;
+                    let cumpleAsignacion = true;
+
+                    if (estadoItem === 0) {
+                        if (modoAsignacionActual === "ASIGNADOS") {
+                            cumpleAsignacion = staffID !== null && staffID.trim() !== "";
+                        }
+                        if (modoAsignacionActual === "SIN_ASIGNAR") {
+                            cumpleAsignacion = staffID === null || staffID.trim() === "";
+                        }
+                    }
+
+                    if (cumpleEstado && cumpleAsignacion) {
+                        item.classList.remove("oculto-estado");
+                        item.classList.remove("d-none");
+                        contador++;
+                    } else {
+                        item.classList.add("oculto-estado");
+                    }
+                });
+
+                document.querySelectorAll(".filtro-estado").forEach(b => {
+                    b.classList.remove("active", "btn-info", "btn-success", "btn-danger", "text-white");
+                    b.classList.remove("btn-outline-info", "btn-outline-success", "btn-outline-danger");
+
+                    const estadoBtn = parseInt(b.getAttribute("data-estado"));
+                    if (estadoBtn === 0) {
+                        b.classList.add("btn-outline-info");
+                    } else if (estadoBtn === 1) {
+                        b.classList.add("btn-outline-success");
+                    } else if (estadoBtn === 2) {
+                        b.classList.add("btn-outline-danger");
+                    }
+                });
+
+                btn.classList.add("active", "text-white");
+
+                if (estadoBox) {
+                    estadoBox.classList.remove("estado-abierto", "estado-cerrado", "estado-cancelado");
+                    if (estado === 0) {
+                        estadoBox.classList.add("estado-abierto");
+                    }
+                    if (estado === 1) {
+                        estadoBox.classList.add("estado-cerrado");
+                    }
+                    if (estado === 2) {
+                        estadoBox.classList.add("estado-cancelado");
+                    }
+                }
+
+                if (estado === 0) {
+                    document.getElementById("tituloEstadoPedidos").innerText = "Pedidos abiertos";
+                    document.getElementById("descripcionEstadoPedidos").innerText = descripcionAsignacion("Pedidos pendientes de facturación, gestión o cierre.");
+                    document.getElementById("badgeTituloEstado").innerText = contador + " abiertos";
+
+                    if (emptyTitulo) {
+                        emptyTitulo.innerText = "No hay pedidos abiertos";
+                    }
+
+                    if (emptyTexto) {
+                        emptyTexto.innerText = textoEmptyAsignacion("No tienes pedidos abiertos para la fecha seleccionada.");
+                    }
+                }
+
+                if (estado === 1) {
+                    document.getElementById("tituloEstadoPedidos").innerText = "Pedidos cerrados";
+                    document.getElementById("descripcionEstadoPedidos").innerText = descripcionAsignacion("Pedidos ya gestionados y cerrados.");
+                    document.getElementById("badgeTituloEstado").innerText = contador + " cerrados";
+
+                    if (emptyTitulo) {
+                        emptyTitulo.innerText = "No hay pedidos cerrados";
+                    }
+
+                    if (emptyTexto) {
+                        emptyTexto.innerText = textoEmptyAsignacion("No tienes pedidos cerrados para la fecha seleccionada.");
+                    }
+                }
+
+                if (estado === 2) {
+                    document.getElementById("tituloEstadoPedidos").innerText = "Pedidos cancelados";
+                    document.getElementById("descripcionEstadoPedidos").innerText = descripcionAsignacion("Pedidos cancelados durante la gestión.");
+                    document.getElementById("badgeTituloEstado").innerText = contador + " cancelados";
+
+                    if (emptyTitulo) {
+                        emptyTitulo.innerText = "No hay pedidos cancelados";
+                    }
+
+                    if (emptyTexto) {
+                        emptyTexto.innerText = textoEmptyAsignacion("No tienes pedidos cancelados para la fecha seleccionada.");
+                    }
+                }
+
+                document.getElementById("contadorEstadoPedidos").innerText = contador;
+
+                if (emptyBox) {
+                    if (contador === 0) {
+                        emptyBox.classList.remove("d-none");
+                    } else {
+                        emptyBox.classList.add("d-none");
+                    }
+                }
+
+                actualizarTextoAsignacion();
             }
-        });
-    });
-
-    actualizarTextoAsignacion();
-    inicializarUltimoIdControlPedido();
-
-    if (pollingPedidosActivo) {
-        verificarNuevoPedidoAsignado(); // consulta inmediata
-        setInterval(verificarNuevoPedidoAsignado, 10000);
-    }
-
-    const btnAbiertos = document.querySelector('.filtro-estado[data-estado="0"]');
-    const estadoBoxPedidos = document.getElementById("estadoBoxPedidos");
-
-    if (btnAbiertos && estadoBoxPedidos) {
-        filtrarPorEstado(0, btnAbiertos);
-    }
-});
-
-function filtrarPorEstado(estado, btn) {
-    const items = document.querySelectorAll(".pedido-item");
-    const estadoBox = document.getElementById("estadoBoxPedidos");
-    const emptyBox = document.getElementById("emptyEstadoActual");
-    const emptyTitulo = document.getElementById("emptyTituloEstado");
-    const emptyTexto = document.getElementById("emptyTextoEstado");
-
-    let contador = 0;
-
-    items.forEach(item => {
-        const estadoItem = parseInt(item.getAttribute("data-estado"));
-        const staffID = item.getAttribute("data-staffid");
-
-        let cumpleEstado = estadoItem === estado;
-        let cumpleAsignacion = true;
-
-        // Solo aplicamos filtro de asignación para pedidos abiertos
-        if (estadoItem === 0) {
-            if (modoAsignacionActual === "ASIGNADOS") {
-                cumpleAsignacion = staffID !== null && staffID.trim() !== "";
-            }
-            if (modoAsignacionActual === "SIN_ASIGNAR") {
-                cumpleAsignacion = staffID === null || staffID.trim() === "";
-            }
-        }
-
-        if (cumpleEstado && cumpleAsignacion) {
-            item.classList.remove("oculto-estado");
-            item.classList.remove("d-none");
-            contador++;
-        } else {
-            item.classList.add("oculto-estado");
-        }
-    });
-
-    // Actualizar estilos de botones
-    document.querySelectorAll(".filtro-estado").forEach(b => {
-        b.classList.remove("active", "btn-info", "btn-success", "btn-danger", "text-white");
-        b.classList.remove("btn-outline-info", "btn-outline-success", "btn-outline-danger");
-
-        const estadoBtn = parseInt(b.getAttribute("data-estado"));
-        if (estadoBtn === 0) b.classList.add("btn-outline-info");
-        else if (estadoBtn === 1) b.classList.add("btn-outline-success");
-        else if (estadoBtn === 2) b.classList.add("btn-outline-danger");
-    });
-
-    btn.classList.add("active", "text-white");
-
-    // Actualizar la visualización de la caja de estado
-    if (estadoBox) {
-        estadoBox.classList.remove("estado-abierto", "estado-cerrado", "estado-cancelado");
-        if (estado === 0) estadoBox.classList.add("estado-abierto");
-        if (estado === 1) estadoBox.classList.add("estado-cerrado");
-        if (estado === 2) estadoBox.classList.add("estado-cancelado");
-    }
-
-    // Actualizar títulos y contadores
-    if (estado === 0) {
-        document.getElementById("tituloEstadoPedidos").innerText = "Pedidos abiertos";
-        document.getElementById("descripcionEstadoPedidos").innerText = descripcionAsignacion("Pedidos pendientes de facturación, gestión o cierre.");
-        document.getElementById("badgeTituloEstado").innerText = contador + " abiertos";
-        if (emptyTitulo) emptyTitulo.innerText = "No hay pedidos abiertos";
-        if (emptyTexto) emptyTexto.innerText = textoEmptyAsignacion("No tienes pedidos abiertos para la fecha seleccionada.");
-    }
-    if (estado === 1) {
-        document.getElementById("tituloEstadoPedidos").innerText = "Pedidos cerrados";
-        document.getElementById("descripcionEstadoPedidos").innerText = descripcionAsignacion("Pedidos ya gestionados y cerrados.");
-        document.getElementById("badgeTituloEstado").innerText = contador + " cerrados";
-        if (emptyTitulo) emptyTitulo.innerText = "No hay pedidos cerrados";
-        if (emptyTexto) emptyTexto.innerText = textoEmptyAsignacion("No tienes pedidos cerrados para la fecha seleccionada.");
-    }
-    if (estado === 2) {
-        document.getElementById("tituloEstadoPedidos").innerText = "Pedidos cancelados";
-        document.getElementById("descripcionEstadoPedidos").innerText = descripcionAsignacion("Pedidos cancelados durante la gestión.");
-        document.getElementById("badgeTituloEstado").innerText = contador + " cancelados";
-        if (emptyTitulo) emptyTitulo.innerText = "No hay pedidos cancelados";
-        if (emptyTexto) emptyTexto.innerText = textoEmptyAsignacion("No tienes pedidos cancelados para la fecha seleccionada.");
-    }
-
-    document.getElementById("contadorEstadoPedidos").innerText = contador;
-
-    if (emptyBox) {
-        if (contador === 0) emptyBox.classList.remove("d-none");
-        else emptyBox.classList.add("d-none");
-    }
-
-    actualizarTextoAsignacion();
-}
 
             function toggleAsignacion() {
                 if (modoAsignacionActual === "ASIGNADOS") {
@@ -1184,100 +1350,101 @@ function filtrarPorEstado(estado, btn) {
                     }
                 });
             }
+
             function confirmarPausarAgente(e, form) {
-    e.preventDefault();
+                e.preventDefault();
 
-    Swal.fire({
-        title: "¿Pausar Shift?",
-        text: "El agente quedará pausado y no recibirá nuevos pedidos.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Sí, pausar",
-        cancelButtonText: "Cancelar",
-        confirmButtonColor: "#ffc107",
-        cancelButtonColor: "#6c757d"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            mostrarLoader();
-            form.submit();
-        }
-    });
+                Swal.fire({
+                    title: "¿Pausar Shift?",
+                    text: "El agente quedará pausado y no recibirá nuevos pedidos.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, pausar",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: "#ffc107",
+                    cancelButtonColor: "#6c757d"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        mostrarLoader();
+                        form.submit();
+                    }
+                });
 
-    return false;
-}
+                return false;
+            }
 
-function confirmarCambioEstadoAgente(e, form) {
-    e.preventDefault();
+            function confirmarCambioEstadoAgente(e, form) {
+                e.preventDefault();
 
-    const estado = form.querySelector('input[name="estado"]').value;
-    const inputPassword = form.querySelector('input[name="password"]');
+                const estado = form.querySelector('input[name="estado"]').value;
+                const inputPassword = form.querySelector('input[name="password"]');
 
-    if (estado === "0") {
-        Swal.fire({
-            title: "Confirmar desconexión",
-            text: "Ingrese su contraseña para desconectarse.",
-            icon: "warning",
-            input: "password",
-            inputPlaceholder: "Contraseña",
-            inputAttributes: {
-                autocapitalize: "off",
-                autocomplete: "current-password"
-            },
-            showCancelButton: true,
-            confirmButtonText: "Desconectarme",
-            cancelButtonText: "Cancelar",
-            confirmButtonColor: "#212529",
-            cancelButtonColor: "#6c757d",
-            preConfirm: (value) => {
-                if (!value || value.trim() === "") {
-                    Swal.showValidationMessage("Debe ingresar su contraseña.");
+                if (estado === "0") {
+                    Swal.fire({
+                        title: "Confirmar desconexión",
+                        text: "Ingrese su contraseña para desconectarse.",
+                        icon: "warning",
+                        input: "password",
+                        inputPlaceholder: "Contraseña",
+                        inputAttributes: {
+                            autocapitalize: "off",
+                            autocomplete: "current-password"
+                        },
+                        showCancelButton: true,
+                        confirmButtonText: "Desconectarme",
+                        cancelButtonText: "Cancelar",
+                        confirmButtonColor: "#212529",
+                        cancelButtonColor: "#6c757d",
+                        preConfirm: (value) => {
+                            if (!value || value.trim() === "") {
+                                Swal.showValidationMessage("Debe ingresar su contraseña.");
+                                return false;
+                            }
+
+                            return value;
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            if (inputPassword) {
+                                inputPassword.value = result.value;
+                            }
+
+                            mostrarLoader();
+                            form.submit();
+                        }
+                    });
+
                     return false;
                 }
 
-                return value;
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                if (inputPassword) {
-                    inputPassword.value = result.value;
+                let texto = "El agente quedará disponible para recibir nuevos pedidos.";
+
+                if (estado === "3") {
+                    texto = "El agente quedará pausado y no recibirá nuevos pedidos.";
                 }
 
-                mostrarLoader();
-                form.submit();
+                Swal.fire({
+                    title: "¿Cambiar estado?",
+                    text: texto,
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, cambiar",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: colorPrincipal,
+                    cancelButtonColor: "#6c757d"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if (inputPassword) {
+                            inputPassword.value = "";
+                        }
+
+                        mostrarLoader();
+                        form.submit();
+                    }
+                });
+
+                return false;
             }
-        });
-
-        return false;
-    }
-
-    let texto = "El agente quedará disponible para recibir nuevos pedidos.";
-
-    if (estado === "3") {
-        texto = "El agente quedará pausado y no recibirá nuevos pedidos.";
-    }
-
-    Swal.fire({
-        title: "¿Cambiar estado?",
-        text: texto,
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: "Sí, cambiar",
-        cancelButtonText: "Cancelar",
-        confirmButtonColor: "#0dcaf0",
-        cancelButtonColor: "#6c757d"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            if (inputPassword) {
-                inputPassword.value = "";
-            }
-
-            mostrarLoader();
-            form.submit();
-        }
-    });
-
-    return false;
-}
 
             function inicializarUltimoIdControlPedido() {
                 ultimoIdControlPedido = 0;
@@ -1302,7 +1469,15 @@ function confirmarCambioEstadoAgente(e, form) {
 
                 verificandoNuevoPedido = true;
 
-                fetch(contextPath + "/pedidos-alerta?ultimoIdControlPedido=" + ultimoIdControlPedido, {
+                const fechaAlerta = "<%= fechaSeleccionada != null ? fechaSeleccionada : "" %>";
+
+                let urlAlerta = contextPath + "/pedidos-alerta?ultimoIdControlPedido=" + ultimoIdControlPedido;
+
+                if (fechaAlerta && fechaAlerta.trim() !== "") {
+                    urlAlerta += "&fecha=" + encodeURIComponent(fechaAlerta);
+                }
+
+                fetch(urlAlerta, {
                     method: "GET",
                     cache: "no-store"
                 })
@@ -1335,7 +1510,7 @@ function confirmarCambioEstadoAgente(e, form) {
                                     "<div><strong>Teléfono:</strong> " + escaparHtml(data.customerPhone || "") + "</div>" +
                                     "<div><strong>Total:</strong> L. " + escaparHtml(data.total || "0.00") + "</div>" +
                                 "</div>",
-                            confirmButtonColor: "#0dcaf0",
+                            confirmButtonColor: colorPrincipal,
                             confirmButtonText: "Ver pedido",
                             allowOutsideClick: false
                         }).then(() => {
@@ -1351,45 +1526,45 @@ function confirmarCambioEstadoAgente(e, form) {
                     });
             }
 
-function reproducirSonidoNuevoPedido() {
-    try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            function reproducirSonidoNuevoPedido() {
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-        const volumen = 0.65; // Más fuerte. Puedes subirlo hasta 1.0
-        const duracionTono = 0.45;
-        const pausa = 0.18;
+                    const volumen = 0.65;
+                    const duracionTono = 0.45;
+                    const pausa = 0.18;
 
-        const tonos = [
-            880,  1046, 880,
-            1046, 1318, 1046,
-            880,  1046, 1318
-        ];
+                    const tonos = [
+                        880, 1046, 880,
+                        1046, 1318, 1046,
+                        880, 1046, 1318
+                    ];
 
-        tonos.forEach((frecuencia, index) => {
-            const inicio = audioContext.currentTime + index * (duracionTono + pausa);
-            const fin = inicio + duracionTono;
+                    tonos.forEach((frecuencia, index) => {
+                        const inicio = audioContext.currentTime + index * (duracionTono + pausa);
+                        const fin = inicio + duracionTono;
 
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
 
-            oscillator.type = "square"; // Más fuerte que "sine"
-            oscillator.frequency.setValueAtTime(frecuencia, inicio);
+                        oscillator.type = "square";
+                        oscillator.frequency.setValueAtTime(frecuencia, inicio);
 
-            gainNode.gain.setValueAtTime(0.001, inicio);
-            gainNode.gain.linearRampToValueAtTime(volumen, inicio + 0.03);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, fin);
+                        gainNode.gain.setValueAtTime(0.001, inicio);
+                        gainNode.gain.linearRampToValueAtTime(volumen, inicio + 0.03);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, fin);
 
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
 
-            oscillator.start(inicio);
-            oscillator.stop(fin);
-        });
+                        oscillator.start(inicio);
+                        oscillator.stop(fin);
+                    });
 
-    } catch (e) {
-        console.warn("No se pudo reproducir sonido:", e);
-    }
-}
+                } catch (e) {
+                    console.warn("No se pudo reproducir sonido:", e);
+                }
+            }
 
             function confirmarAsignarPendientes(e, form) {
                 e.preventDefault();
@@ -1407,7 +1582,7 @@ function reproducirSonidoNuevoPedido() {
                     showCancelButton: true,
                     confirmButtonText: "Asignar",
                     cancelButtonText: "Cancelar",
-                    confirmButtonColor: "#0dcaf0",
+                    confirmButtonColor: colorPrincipal,
                     cancelButtonColor: "#6c757d",
                     preConfirm: (value) => {
                         if (value && parseInt(value) <= 0) {

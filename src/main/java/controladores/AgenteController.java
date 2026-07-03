@@ -21,15 +21,30 @@ public class AgenteController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("usuarioObj") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        Agente agenteSesion = (Agente) session.getAttribute("usuarioObj");
+        Integer rolSesion = obtenerRolSesion(session, agenteSesion);
+
         AgenteDAO dao = new AgenteDAO();
 
-        // Por defecto lista agentes activos
-        List<Agente> agentes = dao.listarAgentes();
+        /*
+         * Regla aplicada en SP_AGENTE_LISTAR:
+         * rol 4 = ve todos los agentes, incluyendo farmacias.
+         * rol 3 = ve agentes sin farmacias.
+         * otros roles = comportamiento normal.
+         */
+        List<Agente> agentes = dao.listarAgentes(rolSesion);
 
         request.setAttribute("agentes", agentes);
+        request.setAttribute("rolSesion", rolSesion);
 
-        // Cambia esta ruta según tu JSP real
         request.getRequestDispatcher("/vistas/agente.jsp").forward(request, response);
     }
 
@@ -39,7 +54,7 @@ public class AgenteController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.setCharacterEncoding("UTF-8");
 
         String accion = request.getParameter("accion");
@@ -110,8 +125,21 @@ public class AgenteController extends HttpServlet {
         int estado = parseIntOrDefault(estadoStr, 0); // 0 = Desconectado
         int rol = parseIntOrDefault(rolStr, 2);       // 2 = Agente
 
-        if (estado != 0 && estado != 1) {
+        if (!estadoValido(estado)) {
             setSwal(request, "error", "Validación", "Estado inválido.");
+            response.sendRedirect(request.getContextPath() + "/agente");
+            return;
+        }
+
+        /*
+         * Roles:
+         * 1 = Administrador
+         * 2 = Agente
+         * 3 = Farmacia
+         * 4 = Vista total
+         */
+        if (!rolValido(rol)) {
+            setSwal(request, "error", "Validación", "Rol inválido.");
             response.sendRedirect(request.getContextPath() + "/agente");
             return;
         }
@@ -177,8 +205,21 @@ public class AgenteController extends HttpServlet {
         int estado = parseIntOrDefault(estadoStr, 0);
         int rol = parseIntOrDefault(rolStr, 2);
 
-        if (estado != 0 && estado != 1) {
+        if (!estadoValido(estado)) {
             setSwal(request, "error", "Validación", "Estado inválido.");
+            response.sendRedirect(request.getContextPath() + "/agente");
+            return;
+        }
+
+        /*
+         * Roles:
+         * 1 = Administrador
+         * 2 = Agente
+         * 3 = Farmacia
+         * 4 = Vista total
+         */
+        if (!rolValido(rol)) {
+            setSwal(request, "error", "Validación", "Rol inválido.");
             response.sendRedirect(request.getContextPath() + "/agente");
             return;
         }
@@ -235,120 +276,120 @@ public class AgenteController extends HttpServlet {
     // ============================================================
     // CAMBIAR CONTRASEÑA
     // ============================================================
-private void cambiarPassword(HttpServletRequest request, HttpServletResponse response)
-        throws IOException {
+    private void cambiarPassword(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
 
-    HttpSession session = request.getSession(false);
+        HttpSession session = request.getSession(false);
 
-    if (session == null || session.getAttribute("usuarioObj") == null) {
-        setSwal(request, "error", "Sesión expirada", "Debes iniciar sesión nuevamente.");
-        response.sendRedirect(request.getContextPath() + "/login");
-        return;
-    }
+        if (session == null || session.getAttribute("usuarioObj") == null) {
+            setSwal(request, "error", "Sesión expirada", "Debes iniciar sesión nuevamente.");
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
-    Agente agenteSesion = (Agente) session.getAttribute("usuarioObj");
+        Agente agenteSesion = (Agente) session.getAttribute("usuarioObj");
 
-    int idUsuario = agenteSesion.getIdUsuario();
+        int idUsuario = agenteSesion.getIdUsuario();
 
-    String passwordActual = request.getParameter("password_actual");
-    String nuevaPassword = request.getParameter("password");
-    String confirmarPassword = request.getParameter("confirm_password");
+        String passwordActual = request.getParameter("password_actual");
+        String nuevaPassword = request.getParameter("password");
+        String confirmarPassword = request.getParameter("confirm_password");
 
-    if (idUsuario <= 0) {
-        setSwal(request, "error", "Validación", "No se pudo identificar el usuario de la sesión.");
+        if (idUsuario <= 0) {
+            setSwal(request, "error", "Validación", "No se pudo identificar el usuario de la sesión.");
+            response.sendRedirect(request.getContextPath() + "/vistas/agente_password.jsp");
+            return;
+        }
+
+        if (isBlank(passwordActual)) {
+            setSwal(request, "error", "Validación", "Debe ingresar la contraseña actual.");
+            response.sendRedirect(request.getContextPath() + "/vistas/agente_password.jsp");
+            return;
+        }
+
+        if (isBlank(nuevaPassword)) {
+            setSwal(request, "error", "Validación", "Debe ingresar la nueva contraseña.");
+            response.sendRedirect(request.getContextPath() + "/vistas/agente_password.jsp");
+            return;
+        }
+
+        if (isBlank(confirmarPassword)) {
+            setSwal(request, "error", "Validación", "Debe confirmar la nueva contraseña.");
+            response.sendRedirect(request.getContextPath() + "/vistas/agente_password.jsp");
+            return;
+        }
+
+        if (!nuevaPassword.equals(confirmarPassword)) {
+            setSwal(request, "error", "Validación", "La nueva contraseña y la confirmación no coinciden.");
+            response.sendRedirect(request.getContextPath() + "/vistas/agente_password.jsp");
+            return;
+        }
+
+        if (passwordActual.equals(nuevaPassword)) {
+            setSwal(request, "warning", "Validación", "La nueva contraseña no debería ser igual a la actual.");
+            response.sendRedirect(request.getContextPath() + "/vistas/agente_password.jsp");
+            return;
+        }
+
+        AgenteDAO dao = new AgenteDAO();
+        AgenteDAO.ResultadoOperacion res = dao.cambiarPassword(idUsuario, passwordActual, nuevaPassword);
+
+        manejarResultado(
+                request,
+                res,
+                "Contraseña actualizada correctamente.",
+                "No se pudo cambiar la contraseña."
+        );
+
         response.sendRedirect(request.getContextPath() + "/vistas/agente_password.jsp");
-        return;
     }
-
-    if (isBlank(passwordActual)) {
-        setSwal(request, "error", "Validación", "Debe ingresar la contraseña actual.");
-        response.sendRedirect(request.getContextPath() + "/vistas/agente_password.jsp");
-        return;
-    }
-
-    if (isBlank(nuevaPassword)) {
-        setSwal(request, "error", "Validación", "Debe ingresar la nueva contraseña.");
-        response.sendRedirect(request.getContextPath() + "/vistas/agente_password.jsp");
-        return;
-    }
-
-    if (isBlank(confirmarPassword)) {
-        setSwal(request, "error", "Validación", "Debe confirmar la nueva contraseña.");
-        response.sendRedirect(request.getContextPath() + "/vistas/agente_password.jsp");
-        return;
-    }
-
-    if (!nuevaPassword.equals(confirmarPassword)) {
-        setSwal(request, "error", "Validación", "La nueva contraseña y la confirmación no coinciden.");
-        response.sendRedirect(request.getContextPath() + "/vistas/agente_password.jsp");
-        return;
-    }
-
-    if (passwordActual.equals(nuevaPassword)) {
-        setSwal(request, "warning", "Validación", "La nueva contraseña no debería ser igual a la actual.");
-        response.sendRedirect(request.getContextPath() + "/vistas/agente_password.jsp");
-        return;
-    }
-
-    AgenteDAO dao = new AgenteDAO();
-    AgenteDAO.ResultadoOperacion res = dao.cambiarPassword(idUsuario, passwordActual, nuevaPassword);
-
-    manejarResultado(
-            request,
-            res,
-            "Contraseña actualizada correctamente.",
-            "No se pudo cambiar la contraseña."
-    );
-
-    response.sendRedirect(request.getContextPath() + "/vistas/agente_password.jsp");
-}
 
     // ============================================================
-    // CAMBIAR ESTADO DISPONIBLE / DESCONECTADO
+    // CAMBIAR ESTADO DISPONIBLE / DESCONECTADO / PAUSADO
     // ============================================================
-private void cambiarEstado(HttpServletRequest request, HttpServletResponse response)
-        throws IOException {
+    private void cambiarEstado(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
 
-    String idUsuarioStr = request.getParameter("id_usuario");
-    String estadoStr = request.getParameter("estado");
+        String idUsuarioStr = request.getParameter("id_usuario");
+        String estadoStr = request.getParameter("estado");
 
-    int idUsuario = parseIntOrDefault(idUsuarioStr, 0);
-    int estado = parseIntOrDefault(estadoStr, -1);
+        int idUsuario = parseIntOrDefault(idUsuarioStr, 0);
+        int estado = parseIntOrDefault(estadoStr, -1);
 
-    if (idUsuario <= 0) {
-        setSwal(request, "error", "Validación", "ID de agente inválido.");
+        if (idUsuario <= 0) {
+            setSwal(request, "error", "Validación", "ID de agente inválido.");
+            response.sendRedirect(request.getContextPath() + "/agente");
+            return;
+        }
+
+        if (!estadoValido(estado)) {
+            setSwal(request, "error", "Validación", "Estado inválido.");
+            response.sendRedirect(request.getContextPath() + "/agente");
+            return;
+        }
+
+        AgenteDAO dao = new AgenteDAO();
+        AgenteDAO.ResultadoOperacion res = dao.cambiarEstadoAgente(idUsuario, estado);
+
+        String mensajeExito;
+
+        if (estado == 1) {
+            mensajeExito = "Agente marcado como disponible.";
+        } else if (estado == 3) {
+            mensajeExito = "Agente marcado como pausado.";
+        } else {
+            mensajeExito = "Agente marcado como desconectado.";
+        }
+
+        manejarResultado(
+                request,
+                res,
+                mensajeExito,
+                "No se pudo cambiar el estado del agente."
+        );
+
         response.sendRedirect(request.getContextPath() + "/agente");
-        return;
     }
-
-    if (estado != 0 && estado != 1 && estado != 3) {
-        setSwal(request, "error", "Validación", "Estado inválido.");
-        response.sendRedirect(request.getContextPath() + "/agente");
-        return;
-    }
-
-    AgenteDAO dao = new AgenteDAO();
-    AgenteDAO.ResultadoOperacion res = dao.cambiarEstadoAgente(idUsuario, estado);
-
-    String mensajeExito;
-
-    if (estado == 1) {
-        mensajeExito = "Agente marcado como disponible.";
-    } else if (estado == 3) {
-        mensajeExito = "Agente marcado como pausado.";
-    } else {
-        mensajeExito = "Agente marcado como desconectado.";
-    }
-
-    manejarResultado(
-            request,
-            res,
-            mensajeExito,
-            "No se pudo cambiar el estado del agente."
-    );
-
-    response.sendRedirect(request.getContextPath() + "/agente");
-}
 
     // ============================================================
     // UTILIDADES
@@ -359,6 +400,11 @@ private void cambiarEstado(HttpServletRequest request, HttpServletResponse respo
             String mensajeExito,
             String mensajeErrorDefault
     ) {
+
+        if (res == null) {
+            setSwal(request, "error", "Error", mensajeErrorDefault);
+            return;
+        }
 
         String status = res.status == null ? "" : res.status.trim();
 
@@ -401,5 +447,35 @@ private void cambiarEstado(HttpServletRequest request, HttpServletResponse respo
         } catch (NumberFormatException ex) {
             return defaultValue;
         }
+    }
+
+    private boolean estadoValido(int estado) {
+        return estado == 0 || estado == 1 || estado == 3;
+    }
+
+    private boolean rolValido(int rol) {
+        return rol == 1 || rol == 2 || rol == 3 || rol == 4;
+    }
+
+    private Integer obtenerRolSesion(HttpSession session, Agente agenteSesion) {
+        Integer rolSesion = null;
+
+        Object rolObj = session.getAttribute("rol");
+
+        if (rolObj instanceof Integer) {
+            rolSesion = (Integer) rolObj;
+        } else if (rolObj != null) {
+            try {
+                rolSesion = Integer.parseInt(rolObj.toString());
+            } catch (NumberFormatException ex) {
+                rolSesion = null;
+            }
+        }
+
+        if (rolSesion == null && agenteSesion != null) {
+            rolSesion = agenteSesion.getRol();
+        }
+
+        return rolSesion;
     }
 }

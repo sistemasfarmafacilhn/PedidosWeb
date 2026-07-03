@@ -14,6 +14,9 @@
     String codigo = agenteSesion.getCodigo() != null ? agenteSesion.getCodigo() : "";
 
     boolean esAdmin = rol == 1;
+    boolean esFarmacia = rol == 3;
+    boolean esVistaTotal = rol == 4;
+    boolean puedeVerMenuAdmin = esAdmin || esVistaTotal;
 %>
 
 <!DOCTYPE html>
@@ -109,14 +112,62 @@
         .role-badge {
             font-size: .85rem;
         }
+
+        /* ============================================================
+           TEMA FARMACIA
+           rol = 3
+           Color principal: #a7c957
+           ============================================================ */
+
+        body.vista-farmacia {
+            background: #f4f8ec !important;
+        }
+
+        body.vista-farmacia .section-title {
+            color: #6f8f24 !important;
+        }
+
+        body.vista-farmacia .menu-card {
+            background: #eef6df !important;
+            border-color: rgba(167, 201, 87, .45) !important;
+        }
+
+        body.vista-farmacia .menu-card .card-title {
+            color: #6f8f24 !important;
+        }
+
+        body.vista-farmacia .menu-icon {
+            background: rgba(167, 201, 87, .25) !important;
+            color: #6f8f24 !important;
+        }
+
+        body.vista-farmacia .btn-info-soft {
+            background-color: #a7c957 !important;
+            border-color: #a7c957 !important;
+            color: #1f2d0b !important;
+        }
+
+        body.vista-farmacia .btn-info-soft:hover {
+            background-color: #95b94c !important;
+            border-color: #95b94c !important;
+            color: #1f2d0b !important;
+        }
+
+        body.vista-farmacia .main-card {
+            background: #fbfdf6 !important;
+        }
+
+        body.vista-farmacia .top-bar {
+            background: #fbfdf6 !important;
+        }
     </style>
 </head>
 
-<body class="bg-light">
+<body class="bg-light <%= esFarmacia ? "vista-farmacia" : "" %>">
+
 <jsp:include page="/vistas/navbar.jsp" />
+
 <div class="container py-4 py-md-5">
-
-
 
     <div class="row justify-content-center">
         <div class="col-12 col-xl-11">
@@ -133,17 +184,26 @@
 
                     <div class="row g-4 justify-content-center">
 
-                        <% if (esAdmin) { %>
+                        <% if (puedeVerMenuAdmin) { %>
 
-                            <!-- ADMIN: TODOS LOS PEDIDOS -->
+                            <!-- ADMIN / VISTA TOTAL: TODOS LOS PEDIDOS -->
                             <div class="col-12 col-md-6 col-xl-4">
                                 <div class="card menu-card card-hover h-100">
                                     <div class="card-body d-flex flex-column">
                                         <div class="menu-icon">TP</div>
-                                        <h5 class="card-title">Todos los Pedidos</h5>
-                                        <p class="card-text flex-grow-1">
-                                            Consulta todos los pedidos asignados a los agentes, filtrados por fecha y estado.
-                                        </p>
+
+                                        <% if (esVistaTotal) { %>
+                                            <h5 class="card-title">Vista Total de Pedidos</h5>
+                                            <p class="card-text flex-grow-1">
+                                                Consulta todos los pedidos asignados a agentes y farmacias, filtrados por fecha y estado.
+                                            </p>
+                                        <% } else { %>
+                                            <h5 class="card-title">Todos los Pedidos</h5>
+                                            <p class="card-text flex-grow-1">
+                                                Consulta todos los pedidos asignados a los agentes, filtrados por fecha y estado.
+                                            </p>
+                                        <% } %>
+
                                         <a href="<%= request.getContextPath() %>/pedidos-agente"
                                            class="btn btn-info-soft w-100">
                                             Ingresar
@@ -152,15 +212,24 @@
                                 </div>
                             </div>
 
-                            <!-- ADMIN: GESTIÓN DE AGENTES -->
+                            <!-- ADMIN / VISTA TOTAL: GESTIÓN DE AGENTES -->
                             <div class="col-12 col-md-6 col-xl-4">
                                 <div class="card menu-card card-hover h-100">
                                     <div class="card-body d-flex flex-column">
                                         <div class="menu-icon">AG</div>
+
                                         <h5 class="card-title">Gestión de Agentes</h5>
-                                        <p class="card-text flex-grow-1">
-                                            Crea, edita, elimina lógicamente y administra el estado de los agentes.
-                                        </p>
+
+                                        <% if (esVistaTotal) { %>
+                                            <p class="card-text flex-grow-1">
+                                                Crea, edita y administra agentes, administradores, farmacias y usuarios de vista total.
+                                            </p>
+                                        <% } else { %>
+                                            <p class="card-text flex-grow-1">
+                                                Crea, edita, elimina lógicamente y administra el estado de agentes.
+                                            </p>
+                                        <% } %>
+
                                         <a href="<%= request.getContextPath() %>/agente"
                                            class="btn btn-info-soft w-100">
                                             Ingresar
@@ -169,7 +238,7 @@
                                 </div>
                             </div>
 
-                            <!-- ADMIN: CAMBIAR CONTRASEÑA -->
+                            <!-- ADMIN / VISTA TOTAL: CAMBIAR CONTRASEÑA -->
                             <div class="col-12 col-md-6 col-xl-4">
                                 <div class="card menu-card card-hover h-100">
                                     <div class="card-body d-flex flex-column">
@@ -188,15 +257,24 @@
 
                         <% } else { %>
 
-                            <!-- AGENTE: MIS PEDIDOS -->
+                            <!-- AGENTE / FARMACIA: MIS PEDIDOS -->
                             <div class="col-12 col-md-6 col-xl-4">
                                 <div class="card menu-card card-hover h-100">
                                     <div class="card-body d-flex flex-column">
                                         <div class="menu-icon">MP</div>
-                                        <h5 class="card-title">Mis Pedidos</h5>
-                                        <p class="card-text flex-grow-1">
-                                            Consulta y gestiona los pedidos asignados a tu usuario para procesarlos.
-                                        </p>
+
+                                        <% if (esFarmacia) { %>
+                                            <h5 class="card-title">Pedidos de Farmacia</h5>
+                                            <p class="card-text flex-grow-1">
+                                                Consulta y gestiona los pedidos pickup asignados a tu farmacia.
+                                            </p>
+                                        <% } else { %>
+                                            <h5 class="card-title">Mis Pedidos</h5>
+                                            <p class="card-text flex-grow-1">
+                                                Consulta y gestiona los pedidos asignados a tu usuario para procesarlos.
+                                            </p>
+                                        <% } %>
+
                                         <a href="<%= request.getContextPath() %>/pedidos-agente"
                                            class="btn btn-info-soft w-100">
                                             Ingresar
@@ -205,7 +283,7 @@
                                 </div>
                             </div>
 
-                            <!-- AGENTE: CAMBIAR CONTRASEÑA -->
+                            <!-- AGENTE / FARMACIA: CAMBIAR CONTRASEÑA -->
                             <div class="col-12 col-md-6 col-xl-4">
                                 <div class="card menu-card card-hover h-100">
                                     <div class="card-body d-flex flex-column">
