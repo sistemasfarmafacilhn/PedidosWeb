@@ -419,6 +419,152 @@ public class PedidoAsignado {
     }
 
     public void addDetalle(PedidoAsignadoDetalle detalle) {
-        this.detalles.add(detalle);
+        if (this.detalles == null) {
+            this.detalles = new ArrayList<>();
+        }
+
+        if (detalle != null) {
+            this.detalles.add(detalle);
+        }
+    }
+
+    // ============================================================
+    // Métodos auxiliares de rol asignado
+    // ============================================================
+
+    public boolean isAsignadoAdministrador() {
+        return rolAsignado != null && rolAsignado == 1;
+    }
+
+    public boolean isAsignadoAgente() {
+        return rolAsignado != null && rolAsignado == 2;
+    }
+
+    public boolean isAsignadoFarmacia() {
+        return rolAsignado != null && rolAsignado == 3;
+    }
+
+    public boolean isAsignadoAgenteFarmacia() {
+        return rolAsignado != null && rolAsignado == 3;
+    }
+
+    public boolean isAsignadoVistaTotal() {
+        return rolAsignado != null && rolAsignado == 4;
+    }
+
+    public boolean isAsignadoSupervisor() {
+        return rolAsignado != null && rolAsignado == 5;
+    }
+
+    public String getRolAsignadoDescripcionSegura() {
+        if (rolAsignadoDescripcion != null && !rolAsignadoDescripcion.trim().isEmpty()) {
+            return rolAsignadoDescripcion;
+        }
+
+        if (rolAsignado == null) {
+            return "Sin asignar";
+        }
+
+        switch (rolAsignado) {
+            case 1:
+                return "Administrador";
+            case 2:
+                return "Agente";
+            case 3:
+                return "Agente de farmacia";
+            case 4:
+                return "Vista total";
+            case 5:
+                return "Supervisor";
+            default:
+                return "Otro";
+        }
+    }
+
+    // ============================================================
+    // Métodos auxiliares de estado del pedido/control
+    // ============================================================
+
+    public boolean isEstadoAbierto() {
+        return estadoControl == 0;
+    }
+
+    public boolean isEstadoCerrado() {
+        return estadoControl == 1;
+    }
+
+    public boolean isEstadoCancelado() {
+        return estadoControl == 2;
+    }
+
+    public boolean isEstadoEnPreparacion() {
+        return estadoControl == 3;
+    }
+
+    public boolean isEstadoListoParaDespacho() {
+        return estadoControl == 4;
+    }
+
+    public boolean isEstadoEnRuta() {
+        return estadoControl == 5;
+    }
+
+    public String getEstadoControlDescripcionSegura() {
+        if (estadoControlDescripcion != null && !estadoControlDescripcion.trim().isEmpty()) {
+            return estadoControlDescripcion;
+        }
+
+        switch (estadoControl) {
+            case 0:
+                return "Abierto";
+            case 1:
+                return "Cerrado";
+            case 2:
+                return "Cancelado";
+            case 3:
+                return "En Preparación";
+            case 4:
+                return "Listo para Despacho";
+            case 5:
+                return "En Ruta";
+            default:
+                return "Desconocido";
+        }
+    }
+
+    // ============================================================
+    // Métodos auxiliares para vista
+    // ============================================================
+
+    public boolean tieneDetalles() {
+        return detalles != null && !detalles.isEmpty();
+    }
+
+    public int getCantidadDetalles() {
+        return detalles == null ? 0 : detalles.size();
+    }
+
+    public String getNombreAgenteSeguro() {
+        if (nombreAgente != null && !nombreAgente.trim().isEmpty()) {
+            return nombreAgente;
+        }
+
+        return "Sin asignar";
+    }
+
+    public String getBranchNameSeguro() {
+        if (branchName != null && !branchName.trim().isEmpty()) {
+            return branchName;
+        }
+
+        return "Sin sucursal";
+    }
+
+    public String getStaffIDSeguro() {
+        if (staffID != null && !staffID.trim().isEmpty()) {
+            return staffID;
+        }
+
+        return "";
     }
 }

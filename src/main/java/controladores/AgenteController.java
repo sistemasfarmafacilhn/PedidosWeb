@@ -10,43 +10,105 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 import modelos.Agente;
+import modelos.FarmaciaSupervisor;
 import utilidades.PasswordUtil;
 
 @WebServlet("/agente")
 public class AgenteController extends HttpServlet {
 
-    // ============================================================
-    // GET -> Mostrar listado / formulario de agentes
-    // ============================================================
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+// ============================================================
+// GET -> Mostrar listado / formulario de agentes
+// ============================================================
+@Override
+protected void doGet(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
 
-        HttpSession session = request.getSession(false);
+    HttpSession session = request.getSession(false);
 
-        if (session == null || session.getAttribute("usuarioObj") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-
-        Agente agenteSesion = (Agente) session.getAttribute("usuarioObj");
-        Integer rolSesion = obtenerRolSesion(session, agenteSesion);
-
-        AgenteDAO dao = new AgenteDAO();
-
-        /*
-         * Regla aplicada en SP_AGENTE_LISTAR:
-         * rol 4 = ve todos los agentes, incluyendo farmacias.
-         * rol 3 = ve agentes sin farmacias.
-         * otros roles = comportamiento normal.
-         */
-        List<Agente> agentes = dao.listarAgentes(rolSesion);
-
-        request.setAttribute("agentes", agentes);
-        request.setAttribute("rolSesion", rolSesion);
-
-        request.getRequestDispatcher("/vistas/agente.jsp").forward(request, response);
+    if (session == null || session.getAttribute("usuarioObj") == null) {
+        response.sendRedirect(request.getContextPath() + "/login");
+        return;
     }
+
+    Agente agenteSesion = (Agente) session.getAttribute("usuarioObj");
+    Integer rolSesion = obtenerRolSesion(session, agenteSesion);
+
+    AgenteDAO dao = new AgenteDAO();
+
+    String staffIDFiltro = request.getParameter("staffIDFiltro");
+
+    if (isBlank(staffIDFiltro)) {
+        staffIDFiltro = request.getParameter("StaffID");
+    }
+
+    if (isBlank(staffIDFiltro)) {
+        staffIDFiltro = request.getParameter("staffID");
+    }
+
+    if (!isBlank(staffIDFiltro)) {
+        staffIDFiltro = staffIDFiltro.trim();
+    } else {
+        staffIDFiltro = null;
+    }
+
+    List<Agente> agentes;
+
+    /*
+     * Regla aplicada en SP_AGENTE_LISTAR:
+     * rol 4 = ve todos los agentes.
+     * rol 5 = supervisor, solo ve agentes de farmacia de sus centros asignados.
+     * otros roles = comportamiento normal.
+     *
+     * Para supervisor:
+     * - Se manda agenteSesion.getNombre() para comparar con VW_FARMACIAS_SUPERVISOR.Supervisor.
+     * - Si staffIDFiltro viene lleno, solo lista agentes de esa farmacia.
+     */
+    if (rolSesion != null && rolSesion == 5) {
+
+        String supervisor = agenteSesion.getNombre();
+
+        agentes = dao.listarAgentes(
+                null,
+                null,
+                staffIDFiltro,
+                null,
+                null,
+                0,
+                null,
+                rolSesion,
+                supervisor
+        );
+
+        List<FarmaciaSupervisor> farmaciasSupervisor =
+                dao.listarFarmaciasPorSupervisor(supervisor);
+
+        request.setAttribute("farmaciasSupervisor", farmaciasSupervisor);
+        request.setAttribute("esSupervisor", true);
+
+    } else {
+
+        agentes = dao.listarAgentes(
+                null,
+                null,
+                staffIDFiltro,
+                null,
+                null,
+                0,
+                null,
+                rolSesion,
+                null
+        );
+
+        request.setAttribute("farmaciasSupervisor", null);
+        request.setAttribute("esSupervisor", false);
+    }
+
+    request.setAttribute("agentes", agentes);
+    request.setAttribute("rolSesion", rolSesion);
+    request.setAttribute("staffIDFiltro", staffIDFiltro);
+
+    request.getRequestDispatcher("/vistas/agente.jsp").forward(request, response);
+}
 
     // ============================================================
     // POST -> insertar / editar / eliminar / cambiar password / cambiar estado
@@ -56,6 +118,13 @@ public class AgenteController extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
+
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("usuarioObj") == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
         String accion = request.getParameter("accion");
 
@@ -97,6 +166,10 @@ public class AgenteController extends HttpServlet {
     private void insertarAgente(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
+        HttpSession session = request.getSession(false);
+        Agente agenteSesion = session != null ? (Agente) session.getAttribute("usuarioObj") : null;
+        Integer rolSesion = obtenerRolSesion(session, agenteSesion);
+
         String nombre = request.getParameter("nombre");
         String codigo = request.getParameter("codigo");
         String password = request.getParameter("password");
@@ -122,8 +195,53 @@ public class AgenteController extends HttpServlet {
             return;
         }
 
-        int estado = parseIntOrDefault(estadoStr, 0); // 0 = Desconectado
-        int rol = parseIntOrDefault(rolStr, 2);       // 2 = Agente
+        int estado = parseIntOrDefault(estadoStr, 0);
+        int rol = parseIntOrDefault(rolStr, 2);
+
+        /*
+         * Regla para Supervisor:
+         * Si el usuario logueado es rol 5 = Supervisor:
+         * - Solo puede crear usuarios rol 3 = Farmacia.
+         * - El estado se fuerza a 0 = Desconectado.
+         * - StaffID debe ser el STOREID de una farmacia asignada al supervisor.
+         */
+        if (rolSesion != null && rolSesion == 5) {
+
+            rol = 3;
+            estado = 0;
+
+            if (isBlank(staffID)) {
+                setSwal(request, "error", "Validación", "Debe seleccionar una farmacia asignada.");
+                response.sendRedirect(request.getContextPath() + "/agente");
+                return;
+            }
+
+            AgenteDAO daoValidacion = new AgenteDAO();
+
+            List<FarmaciaSupervisor> farmaciasAsignadas =
+                    daoValidacion.listarFarmaciasPorSupervisor(agenteSesion.getNombre());
+
+            boolean farmaciaPermitida = false;
+
+            for (FarmaciaSupervisor f : farmaciasAsignadas) {
+                if (f.getStoreID() != null
+                        && f.getStoreID().trim().equalsIgnoreCase(staffID.trim())) {
+                    farmaciaPermitida = true;
+                    break;
+                }
+            }
+
+            if (!farmaciaPermitida) {
+                setSwal(
+                        request,
+                        "error",
+                        "No autorizado",
+                        "La farmacia seleccionada no está asignada a su supervisión."
+                );
+                response.sendRedirect(request.getContextPath() + "/agente");
+                return;
+            }
+        }
 
         if (!estadoValido(estado)) {
             setSwal(request, "error", "Validación", "Estado inválido.");
@@ -137,9 +255,25 @@ public class AgenteController extends HttpServlet {
          * 2 = Agente
          * 3 = Farmacia
          * 4 = Vista total
+         * 5 = Supervisor
          */
         if (!rolValido(rol)) {
             setSwal(request, "error", "Validación", "Rol inválido.");
+            response.sendRedirect(request.getContextPath() + "/agente");
+            return;
+        }
+
+        /*
+         * Seguridad backend:
+         * Solo rol 4 = Vista total puede crear usuarios con rol 5 = Supervisor.
+         */
+        if (rol == 5 && !esVistaTotal(rolSesion)) {
+            setSwal(
+                    request,
+                    "error",
+                    "No autorizado",
+                    "Solo usuarios Vista total pueden crear supervisores."
+            );
             response.sendRedirect(request.getContextPath() + "/agente");
             return;
         }
@@ -174,6 +308,10 @@ public class AgenteController extends HttpServlet {
     // ============================================================
     private void editarAgente(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+
+        HttpSession session = request.getSession(false);
+        Agente agenteSesion = session != null ? (Agente) session.getAttribute("usuarioObj") : null;
+        Integer rolSesion = obtenerRolSesion(session, agenteSesion);
 
         String idUsuarioStr = request.getParameter("id_usuario");
         String nombre = request.getParameter("nombre");
@@ -217,9 +355,25 @@ public class AgenteController extends HttpServlet {
          * 2 = Agente
          * 3 = Farmacia
          * 4 = Vista total
+         * 5 = Supervisor
          */
         if (!rolValido(rol)) {
             setSwal(request, "error", "Validación", "Rol inválido.");
+            response.sendRedirect(request.getContextPath() + "/agente");
+            return;
+        }
+
+        /*
+         * Seguridad backend:
+         * Solo rol 4 = Vista total puede asignar rol 5 = Supervisor.
+         */
+        if (rol == 5 && !esVistaTotal(rolSesion)) {
+            setSwal(
+                    request,
+                    "error",
+                    "No autorizado",
+                    "Solo usuarios Vista total pueden asignar el rol Supervisor."
+            );
             response.sendRedirect(request.getContextPath() + "/agente");
             return;
         }
@@ -454,21 +608,27 @@ public class AgenteController extends HttpServlet {
     }
 
     private boolean rolValido(int rol) {
-        return rol == 1 || rol == 2 || rol == 3 || rol == 4;
+        return rol == 1 || rol == 2 || rol == 3 || rol == 4 || rol == 5;
+    }
+
+    private boolean esVistaTotal(Integer rolSesion) {
+        return rolSesion != null && rolSesion == 4;
     }
 
     private Integer obtenerRolSesion(HttpSession session, Agente agenteSesion) {
         Integer rolSesion = null;
 
-        Object rolObj = session.getAttribute("rol");
+        if (session != null) {
+            Object rolObj = session.getAttribute("rol");
 
-        if (rolObj instanceof Integer) {
-            rolSesion = (Integer) rolObj;
-        } else if (rolObj != null) {
-            try {
-                rolSesion = Integer.parseInt(rolObj.toString());
-            } catch (NumberFormatException ex) {
-                rolSesion = null;
+            if (rolObj instanceof Integer) {
+                rolSesion = (Integer) rolObj;
+            } else if (rolObj != null) {
+                try {
+                    rolSesion = Integer.parseInt(rolObj.toString());
+                } catch (NumberFormatException ex) {
+                    rolSesion = null;
+                }
             }
         }
 

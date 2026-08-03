@@ -10,6 +10,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import modelos.Agente;
+import modelos.FarmaciaSupervisor;
 import utilidades.PasswordUtil;
 
 public class AgenteDAO {
@@ -238,11 +239,19 @@ public class AgenteDAO {
     }
 
     public List<Agente> listarAgentes() {
-        return listarAgentes(null, null, null, null, null, 0, null, null);
+        return listarAgentes(null, null, null, null, null, 0, null, null, null);
     }
 
     public List<Agente> listarAgentes(Integer rolUsuario) {
-        return listarAgentes(null, null, null, null, null, 0, null, rolUsuario);
+        return listarAgentes(null, null, null, null, null, 0, null, rolUsuario, null);
+    }
+
+    public List<Agente> listarAgentes(Integer rolUsuario, String supervisorNombre) {
+        return listarAgentes(null, null, null, null, null, 0, null, rolUsuario, supervisorNombre);
+    }
+
+    public List<Agente> listarAgentes(Integer rolUsuario, String supervisorNombre, String staffID) {
+        return listarAgentes(null, null, staffID, null, null, 0, null, rolUsuario, supervisorNombre);
     }
 
     public List<Agente> listarAgentes(
@@ -254,16 +263,9 @@ public class AgenteDAO {
             Integer deleted,
             String busqueda
     ) {
-        return listarAgentes(idUsuario, codigo, staffID, estado, rol, deleted, busqueda, null);
+        return listarAgentes(idUsuario, codigo, staffID, estado, rol, deleted, busqueda, null, null);
     }
 
-    /**
-     * Lista agentes con filtros opcionales.
-     *
-     * @param rolUsuario rol del usuario logueado.
-     *                   4 = ve todos.
-     *                   3 = excluye farmacias.
-     */
     public List<Agente> listarAgentes(
             Integer idUsuario,
             String codigo,
@@ -274,10 +276,35 @@ public class AgenteDAO {
             String busqueda,
             Integer rolUsuario
     ) {
+        return listarAgentes(idUsuario, codigo, staffID, estado, rol, deleted, busqueda, rolUsuario, null);
+    }
+
+    /**
+     * Lista agentes con filtros opcionales.
+     *
+     * @param rolUsuario rol del usuario logueado.
+     *                   4 = Vista total ve todos.
+     *                   5 = Supervisor ve agentes de farmacia de sus centros asignados.
+     *                   Otros roles excluyen agentes de farmacia.
+     *
+     * @param supervisorNombre nombre del supervisor logueado.
+     *                         Se compara contra VW_FARMACIAS_SUPERVISOR.Supervisor.
+     */
+    public List<Agente> listarAgentes(
+            Integer idUsuario,
+            String codigo,
+            String staffID,
+            Integer estado,
+            Integer rol,
+            Integer deleted,
+            String busqueda,
+            Integer rolUsuario,
+            String supervisorNombre
+    ) {
 
         List<Agente> lista = new ArrayList<>();
 
-        String sql = "{ CALL dbo.SP_AGENTE_LISTAR(?,?,?,?,?,?,?,?) }";
+        String sql = "{ CALL dbo.SP_AGENTE_LISTAR(?,?,?,?,?,?,?,?,?) }";
 
         try (Connection con = new ConexionSQLServer().getConnection();
              CallableStatement cs = con.prepareCall(sql)) {
@@ -330,6 +357,12 @@ public class AgenteDAO {
                 cs.setInt(8, rolUsuario);
             }
 
+            if (supervisorNombre == null || supervisorNombre.trim().isEmpty()) {
+                cs.setNull(9, Types.NVARCHAR);
+            } else {
+                cs.setString(9, supervisorNombre.trim());
+            }
+
             try (ResultSet rs = cs.executeQuery()) {
                 while (rs.next()) {
                     Agente agente = mapearAgenteListado(rs);
@@ -346,7 +379,7 @@ public class AgenteDAO {
 
     public Agente obtenerAgentePorId(int idUsuario) {
 
-        List<Agente> lista = listarAgentes(idUsuario, null, null, null, null, null, null, null);
+        List<Agente> lista = listarAgentes(idUsuario, null, null, null, null, null, null, null, null);
 
         if (lista.isEmpty()) {
             return null;
@@ -520,5 +553,42 @@ public class AgenteDAO {
         agente.setDeleted(rs.getInt("deleted"));
 
         return agente;
+    }
+
+    public List<FarmaciaSupervisor> listarFarmaciasPorSupervisor(String supervisor) {
+
+        List<FarmaciaSupervisor> lista = new ArrayList<>();
+
+        if (supervisor == null || supervisor.trim().isEmpty()) {
+            return lista;
+        }
+
+        String sql = "{ CALL dbo.SP_FARMACIAS_LISTAR_POR_SUPERVISOR(?) }";
+
+        try (Connection con = new ConexionSQLServer().getConnection();
+             CallableStatement cs = con.prepareCall(sql)) {
+
+            cs.setString(1, supervisor.trim());
+
+            try (ResultSet rs = cs.executeQuery()) {
+
+                while (rs.next()) {
+
+                    FarmaciaSupervisor farmacia = new FarmaciaSupervisor();
+
+                    farmacia.setName(rs.getString("NAME"));
+                    farmacia.setCentro(rs.getString("CENTRO"));
+                    farmacia.setStoreID(rs.getString("STOREID"));
+                    farmacia.setSupervisor(rs.getString("Supervisor"));
+
+                    lista.add(farmacia);
+                }
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return lista;
     }
 }

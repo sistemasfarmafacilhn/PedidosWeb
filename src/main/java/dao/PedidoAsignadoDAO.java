@@ -25,7 +25,7 @@ public class PedidoAsignadoDAO {
      * @return Lista de pedidos asignados con sus detalles.
      */
     public List<PedidoAsignado> listarPedidosAbiertosPorAgente(String staffID) {
-        return listarPedidosAbiertosPorAgente(staffID, null, null);
+        return listarPedidosAbiertosPorAgente(staffID, null, null, null);
     }
 
     /**
@@ -37,7 +37,7 @@ public class PedidoAsignadoDAO {
      * @return Lista de pedidos asignados con sus productos.
      */
     public List<PedidoAsignado> listarPedidosAbiertosPorAgente(String staffID, java.util.Date fecha) {
-        return listarPedidosAbiertosPorAgente(staffID, fecha, null);
+        return listarPedidosAbiertosPorAgente(staffID, fecha, null, null);
     }
 
     /**
@@ -46,9 +46,10 @@ public class PedidoAsignadoDAO {
      * Reglas del SP:
      * rol 1 = ve pedidos que no sean farmacia.
      * rol 4 = ve todos.
+     * rol 5 = supervisor ve pedidos de farmacias asignadas.
      * otros roles = ven solo su StaffID.
      *
-     * @param staffID StaffID del usuario logueado.
+     * @param staffID StaffID del usuario logueado o filtro de farmacia.
      * @param fecha Fecha filtro. Puede ser null.
      * @param rolUsuario Rol del usuario logueado.
      * @return Lista de pedidos asignados con sus detalles.
@@ -58,10 +59,32 @@ public class PedidoAsignadoDAO {
             java.util.Date fecha,
             Integer rolUsuario
     ) {
+        return listarPedidosAbiertosPorAgente(staffID, fecha, rolUsuario, null);
+    }
+
+    /**
+     * Lista pedidos abiertos según rol del usuario.
+     *
+     * Para supervisor:
+     * - staffID funciona como filtro de farmacia. Puede ir null para ver todas sus farmacias.
+     * - supervisorNombre se compara contra VW_FARMACIAS_SUPERVISOR.Supervisor.
+     *
+     * @param staffID StaffID del agente o filtro de farmacia.
+     * @param fecha Fecha filtro. Puede ser null.
+     * @param rolUsuario Rol del usuario logueado.
+     * @param supervisorNombre Nombre del supervisor logueado.
+     * @return Lista de pedidos asignados con sus detalles.
+     */
+    public List<PedidoAsignado> listarPedidosAbiertosPorAgente(
+            String staffID,
+            java.util.Date fecha,
+            Integer rolUsuario,
+            String supervisorNombre
+    ) {
 
         List<PedidoAsignado> lista = new ArrayList<>();
 
-        String sql = "{ CALL dbo.SP_PEDIDOS_ABIERTOS_POR_AGENTE(?,?,?) }";
+        String sql = "{ CALL dbo.SP_PEDIDOS_ABIERTOS_POR_AGENTE(?,?,?,?) }";
 
         Map<Long, PedidoAsignado> mapaPedidos = new LinkedHashMap<>();
 
@@ -84,6 +107,12 @@ public class PedidoAsignadoDAO {
                 cs.setNull(3, Types.INTEGER);
             } else {
                 cs.setInt(3, rolUsuario);
+            }
+
+            if (supervisorNombre == null || supervisorNombre.trim().isEmpty()) {
+                cs.setNull(4, Types.NVARCHAR);
+            } else {
+                cs.setString(4, supervisorNombre.trim());
             }
 
             try (ResultSet rs = cs.executeQuery()) {
@@ -198,36 +227,34 @@ public class PedidoAsignadoDAO {
 
     /**
      * Mapea el detalle/producto del pedido asignado.
-/**
- * Mapea el detalle de un pedido asignado.
- */
-private PedidoAsignadoDetalle mapearDetalle(ResultSet rs) throws SQLException {
+     */
+    private PedidoAsignadoDetalle mapearDetalle(ResultSet rs) throws SQLException {
 
-    PedidoAsignadoDetalle detalle = new PedidoAsignadoDetalle();
+        PedidoAsignadoDetalle detalle = new PedidoAsignadoDetalle();
 
-    detalle.setIdPedidoGestionDetalle(rs.getLong("id_pedido_gestion_detalle"));
+        detalle.setIdPedidoGestionDetalle(rs.getLong("id_pedido_gestion_detalle"));
 
-    long idDetalleWeb = rs.getLong("IdDetalleWeb");
-    if (rs.wasNull()) {
-        detalle.setIdDetalleWeb(null);
-    } else {
-        detalle.setIdDetalleWeb(idDetalleWeb);
+        long idDetalleWeb = rs.getLong("IdDetalleWeb");
+        if (rs.wasNull()) {
+            detalle.setIdDetalleWeb(null);
+        } else {
+            detalle.setIdDetalleWeb(idDetalleWeb);
+        }
+
+        detalle.setSku(rs.getString("Sku"));
+        detalle.setNombre(rs.getString("ProductoNombre"));
+        detalle.setQuantity(rs.getBigDecimal("Quantity"));
+        detalle.setUnitPrice(rs.getBigDecimal("UnitPrice"));
+        detalle.setSubtotal(rs.getBigDecimal("ProductoSubtotal"));
+
+        detalle.setCanje(rs.getBoolean("IsCanje"));
+        detalle.setCanjePromocion(rs.getString("CanjePromocion"));
+        detalle.setDescuentoTipo(rs.getString("DescuentoTipo"));
+
+        detalle.setFechaRegistroDetalle(rs.getTimestamp("FechaRegistroDetalle"));
+
+        return detalle;
     }
-
-    detalle.setSku(rs.getString("Sku"));
-    detalle.setNombre(rs.getString("ProductoNombre"));
-    detalle.setQuantity(rs.getBigDecimal("Quantity"));
-    detalle.setUnitPrice(rs.getBigDecimal("UnitPrice"));
-    detalle.setSubtotal(rs.getBigDecimal("ProductoSubtotal"));
-
-    detalle.setCanje(rs.getBoolean("IsCanje"));
-    detalle.setCanjePromocion(rs.getString("CanjePromocion"));
-    detalle.setDescuentoTipo(rs.getString("DescuentoTipo"));
-
-    detalle.setFechaRegistroDetalle(rs.getTimestamp("FechaRegistroDetalle"));
-
-    return detalle;
-}
 
     public static class ResultadoOperacion {
 
@@ -295,60 +322,60 @@ private PedidoAsignadoDetalle mapearDetalle(ResultSet rs) throws SQLException {
         }
     }
 
-public AlertaPedido verificarNuevoPedidoAsignado(String staffID, long ultimoIdControlPedido, java.util.Date fecha) {
+    public AlertaPedido verificarNuevoPedidoAsignado(String staffID, long ultimoIdControlPedido, java.util.Date fecha) {
 
-    AlertaPedido alerta = new AlertaPedido();
-    alerta.setNuevo(false);
+        AlertaPedido alerta = new AlertaPedido();
+        alerta.setNuevo(false);
 
-    if (staffID == null || staffID.trim().isEmpty()) {
+        if (staffID == null || staffID.trim().isEmpty()) {
+            return alerta;
+        }
+
+        String sql = "{ CALL dbo.SP_PEDIDOS_ALERTA_AGENTE(?,?,?) }";
+
+        try (Connection con = new ConexionSQLServer().getConnection();
+             CallableStatement cs = con.prepareCall(sql)) {
+
+            cs.setString(1, staffID.trim());
+            cs.setLong(2, ultimoIdControlPedido);
+
+            if (fecha == null) {
+                cs.setNull(3, Types.DATE);
+            } else {
+                cs.setDate(3, new java.sql.Date(fecha.getTime()));
+            }
+
+            try (ResultSet rs = cs.executeQuery()) {
+
+                if (rs.next()) {
+                    alerta.setNuevo(rs.getBoolean("nuevo"));
+
+                    long idControl = rs.getLong("id_control_pedido");
+                    if (!rs.wasNull()) {
+                        alerta.setIdControlPedido(idControl);
+                    }
+
+                    long idPedidoGestion = rs.getLong("id_pedido_gestion");
+                    if (!rs.wasNull()) {
+                        alerta.setIdPedidoGestion(idPedidoGestion);
+                    }
+
+                    alerta.setOrderIdWeb(rs.getString("OrderIdWeb"));
+                    alerta.setOrderCode(rs.getString("OrderCode"));
+                    alerta.setCustomerName(rs.getString("CustomerName"));
+                    alerta.setCustomerPhone(rs.getString("CustomerPhone"));
+                    alerta.setTotal(rs.getBigDecimal("Total"));
+                    alerta.setFechaAsignacion(rs.getTimestamp("fecha_asignacion"));
+                }
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            alerta.setNuevo(false);
+        }
+
         return alerta;
     }
-
-    String sql = "{ CALL dbo.SP_PEDIDOS_ALERTA_AGENTE(?,?,?) }";
-
-    try (Connection con = new ConexionSQLServer().getConnection();
-         CallableStatement cs = con.prepareCall(sql)) {
-
-        cs.setString(1, staffID.trim());
-        cs.setLong(2, ultimoIdControlPedido);
-
-        if (fecha == null) {
-            cs.setNull(3, Types.DATE);
-        } else {
-            cs.setDate(3, new java.sql.Date(fecha.getTime()));
-        }
-
-        try (ResultSet rs = cs.executeQuery()) {
-
-            if (rs.next()) {
-                alerta.setNuevo(rs.getBoolean("nuevo"));
-
-                long idControl = rs.getLong("id_control_pedido");
-                if (!rs.wasNull()) {
-                    alerta.setIdControlPedido(idControl);
-                }
-
-                long idPedidoGestion = rs.getLong("id_pedido_gestion");
-                if (!rs.wasNull()) {
-                    alerta.setIdPedidoGestion(idPedidoGestion);
-                }
-
-                alerta.setOrderIdWeb(rs.getString("OrderIdWeb"));
-                alerta.setOrderCode(rs.getString("OrderCode"));
-                alerta.setCustomerName(rs.getString("CustomerName"));
-                alerta.setCustomerPhone(rs.getString("CustomerPhone"));
-                alerta.setTotal(rs.getBigDecimal("Total"));
-                alerta.setFechaAsignacion(rs.getTimestamp("fecha_asignacion"));
-            }
-        }
-
-    } catch (SQLException ex) {
-        ex.printStackTrace();
-        alerta.setNuevo(false);
-    }
-
-    return alerta;
-}
 
     public AsignacionPendienteResultado asignarPedidosPendientes(
             Integer cantidad,

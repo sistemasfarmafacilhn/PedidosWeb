@@ -1,6 +1,8 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.util.List"%>
+<%@page import="java.util.Collections"%>
 <%@page import="modelos.Agente"%>
+<%@page import="modelos.FarmaciaSupervisor"%>
 
 <!DOCTYPE html>
 <html lang="es">
@@ -140,6 +142,11 @@
             color: #ffffff;
         }
 
+        .badge-supervisor {
+            background-color: #fd7e14;
+            color: #ffffff;
+        }
+
         .modal-content {
             border-radius: 18px;
             border: none;
@@ -173,6 +180,12 @@
             box-shadow: 0 0 0 .2rem rgba(13,202,240,.20);
         }
 
+        .filtro-supervisor-card {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0,0,0,.08);
+        }
+
         table.dataTable {
             border-collapse: separate !important;
             border-spacing: 0;
@@ -198,6 +211,86 @@
             border-radius: .65rem;
         }
 
+        /* ============================================================
+           TEMA VERDE
+           rol = 5 Supervisor
+           Color principal: #a7c957
+           ============================================================ */
+
+        body.vista-tema-verde {
+            background: #f4f8ec !important;
+        }
+
+        body.vista-tema-verde .page-header-card,
+        body.vista-tema-verde .content-card {
+            background: #fbfdf6 !important;
+            border-color: rgba(167, 201, 87, .45) !important;
+        }
+
+        body.vista-tema-verde .page-title,
+        body.vista-tema-verde .content-card-title,
+        body.vista-tema-verde .modal-title {
+            color: #6f8f24 !important;
+        }
+
+        body.vista-tema-verde .content-card-header,
+        body.vista-tema-verde .modal-header {
+            background: rgba(167, 201, 87, .25) !important;
+            border-left-color: #a7c957 !important;
+        }
+
+        body.vista-tema-verde .btn-info-soft {
+            background-color: #a7c957 !important;
+            border-color: #a7c957 !important;
+            color: #1f2d0b !important;
+        }
+
+        body.vista-tema-verde .btn-info-soft:hover {
+            background-color: #95b94c !important;
+            border-color: #95b94c !important;
+            color: #1f2d0b !important;
+        }
+
+        body.vista-tema-verde .btn-outline-info-soft {
+            border-color: #a7c957 !important;
+            color: #6f8f24 !important;
+        }
+
+        body.vista-tema-verde .btn-outline-info-soft:hover {
+            background-color: #a7c957 !important;
+            color: #1f2d0b !important;
+        }
+
+        body.vista-tema-verde .form-control:focus,
+        body.vista-tema-verde .form-select:focus {
+            border-color: #a7c957 !important;
+            box-shadow: 0 0 0 .2rem rgba(167, 201, 87, .25) !important;
+        }
+
+        body.vista-tema-verde .filtro-supervisor-card {
+            border-top-color: rgba(167, 201, 87, .45) !important;
+        }
+
+        body.vista-tema-verde #tablaAgentes thead th {
+            background: rgba(167, 201, 87, .25) !important;
+            color: #6f8f24 !important;
+        }
+
+        body.vista-tema-verde #tablaAgentes tbody tr:hover {
+            background-color: rgba(167, 201, 87, .12) !important;
+        }
+
+        body.vista-tema-verde .badge-farmacia,
+        body.vista-tema-verde .badge-supervisor {
+            background-color: #6f8f24 !important;
+            color: #ffffff !important;
+        }
+
+        body.vista-tema-verde .badge.bg-info {
+            background-color: #a7c957 !important;
+            color: #1f2d0b !important;
+        }
+
         @media (max-width: 768px) {
             .page-wrapper {
                 padding: 1rem;
@@ -214,10 +307,6 @@
     </style>
 </head>
 
-<body>
-
-<jsp:include page="/vistas/navbar.jsp" />
-
 <%
     List<Agente> agentes = (List<Agente>) request.getAttribute("agentes");
 
@@ -228,9 +317,26 @@
         rolSesion = agenteSesion != null ? agenteSesion.getRol() : 2;
     }
 
-    boolean puedeGestionarRolesAltos = rolSesion == 4;
     boolean esAdministrador = rolSesion == 1;
     boolean esVistaTotal = rolSesion == 4;
+    boolean esSupervisor = rolSesion == 5;
+
+    boolean usarTemaVerde = esSupervisor;
+
+    boolean puedeGestionarRolesAltos = esVistaTotal;
+
+    List<FarmaciaSupervisor> farmaciasSupervisor =
+            (List<FarmaciaSupervisor>) request.getAttribute("farmaciasSupervisor");
+
+    if (farmaciasSupervisor == null) {
+        farmaciasSupervisor = Collections.emptyList();
+    }
+
+    String staffIDFiltro = (String) request.getAttribute("staffIDFiltro");
+
+    if (staffIDFiltro == null) {
+        staffIDFiltro = "";
+    }
 
     String swalIcon = (String) session.getAttribute("swal_icon");
     String swalTitle = (String) session.getAttribute("swal_title");
@@ -247,8 +353,9 @@
     int totalDesconectados = 0;
     int totalPausados = 0;
     int totalAdmins = 0;
-    int totalFarmacias = 0;
+    int totalAgentesFarmacia = 0;
     int totalVistaTotal = 0;
+    int totalSupervisores = 0;
 
     if (agentes != null) {
         for (Agente a : agentes) {
@@ -268,24 +375,38 @@
             }
 
             if (a.getRol() == 3) {
-                totalFarmacias++;
+                totalAgentesFarmacia++;
             }
 
             if (a.getRol() == 4) {
                 totalVistaTotal++;
             }
+
+            if (a.getRol() == 5) {
+                totalSupervisores++;
+            }
         }
     }
 %>
+
+<body class="<%= usarTemaVerde ? "vista-tema-verde" : "" %>">
+
+<jsp:include page="/vistas/navbar.jsp" />
 
 <div class="page-wrapper">
 
     <div class="page-header-card">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-                <h3 class="page-title">Gestión de Agentes</h3>
+                <h3 class="page-title">
+                    <%= esSupervisor ? "Agentes de farmacia" : "Gestión de Agentes" %>
+                </h3>
                 <div class="page-subtitle">
-                    Administración de usuarios/agentes del sistema de pedidos web.
+                    <% if (esSupervisor) { %>
+                        Administración de agentes de farmacia asignados a sus centros supervisados.
+                    <% } else { %>
+                        Administración de usuarios/agentes del sistema de pedidos web.
+                    <% } %>
                 </div>
             </div>
 
@@ -294,48 +415,127 @@
                     <%= totalAgentes %> agentes
                 </span>
 
-                <span class="badge bg-success fs-6">
-                    <%= totalDisponibles %> disponibles
-                </span>
+                <% if (!esSupervisor) { %>
+                    <span class="badge bg-success fs-6">
+                        <%= totalDisponibles %> disponibles
+                    </span>
 
-                <span class="badge bg-secondary fs-6">
-                    <%= totalDesconectados %> desconectados
-                </span>
+                    <span class="badge bg-secondary fs-6">
+                        <%= totalDesconectados %> desconectados
+                    </span>
 
-                <span class="badge bg-warning text-dark fs-6">
-                    <%= totalPausados %> pausados
-                </span>
+                    <span class="badge bg-warning text-dark fs-6">
+                        <%= totalPausados %> pausados
+                    </span>
+                <% } %>
 
                 <% if (puedeGestionarRolesAltos) { %>
                     <span class="badge badge-farmacia fs-6">
-                        <%= totalFarmacias %> farmacia(s)
+                        <%= totalAgentesFarmacia %> agente(s) de farmacia
                     </span>
 
                     <span class="badge badge-vista-total fs-6">
                         <%= totalVistaTotal %> vista total
                     </span>
+
+                    <span class="badge badge-supervisor fs-6">
+                        <%= totalSupervisores %> supervisor(es)
+                    </span>
+                <% } %>
+
+                <% if (esSupervisor) { %>
+                    <span class="badge badge-supervisor fs-6">
+                        Supervisor
+                    </span>
+
+                    <span class="badge badge-farmacia fs-6">
+                        <%= farmaciasSupervisor.size() %> centro(s) asignado(s)
+                    </span>
                 <% } %>
 
                 <button class="btn btn-info-soft" data-bs-toggle="modal" data-bs-target="#modalNuevoAgente">
-                    Nuevo Agente
+                    <%= esSupervisor ? "Nuevo agente de farmacia" : "Nuevo Agente" %>
                 </button>
             </div>
         </div>
+
+        <% if (esSupervisor) { %>
+            <div class="filtro-supervisor-card">
+                <form method="get"
+                      action="<%= request.getContextPath() %>/agente"
+                      class="row g-2 align-items-end">
+
+                    <div class="col-12 col-md-8 col-lg-6">
+                        <label class="form-label mb-1">Filtrar por farmacia asignada</label>
+
+                        <select name="staffIDFiltro" class="form-select">
+                            <option value="">Todas mis farmacias</option>
+
+                            <% for (FarmaciaSupervisor f : farmaciasSupervisor) {
+                                String store = f.getStoreID() == null ? "" : f.getStoreID();
+                                String centro = f.getCentro() == null ? "" : f.getCentro();
+                                String name = f.getName() == null ? "" : f.getName();
+
+                                boolean selected = store.equalsIgnoreCase(staffIDFiltro);
+                            %>
+                                <option value="<%= store %>" <%= selected ? "selected" : "" %>>
+                                    <%= store %> - <%= centro %> - <%= name %>
+                                </option>
+                            <% } %>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-auto">
+                        <button type="submit" class="btn btn-info-soft w-100">
+                            Filtrar
+                        </button>
+                    </div>
+
+                    <div class="col-12 col-md-auto">
+                        <a href="<%= request.getContextPath() %>/agente"
+                           class="btn btn-outline-info-soft w-100">
+                            Limpiar
+                        </a>
+                    </div>
+
+                    <% if (!staffIDFiltro.trim().isEmpty()) { %>
+                        <div class="col-12">
+                            <div class="form-text">
+                                Mostrando agentes de farmacia asignados al centro:
+                                <strong><%= staffIDFiltro %></strong>
+                            </div>
+                        </div>
+                    <% } %>
+                </form>
+            </div>
+        <% } %>
     </div>
 
     <div class="content-card">
         <div class="content-card-header">
             <div>
-                <h6 class="content-card-title">Listado de agentes</h6>
+                <h6 class="content-card-title">
+                    <%= esSupervisor ? "Listado de agentes de farmacia" : "Listado de agentes" %>
+                </h6>
                 <p class="content-card-subtitle">
-                    Consulta, edita, elimina lógicamente o cambia disponibilidad de los agentes.
-                    Las farmacias no manejan disponibilidad.
+                    <% if (esSupervisor) { %>
+                        Consulta, edita o elimina lógicamente los agentes de farmacia bajo su supervisión.
+                    <% } else { %>
+                        Consulta, edita, elimina lógicamente o cambia disponibilidad de los agentes.
+                        Los agentes de farmacia no manejan disponibilidad.
+                    <% } %>
                 </p>
             </div>
 
-            <span class="badge bg-primary">
-                <%= totalAdmins %> administrador(es)
-            </span>
+            <% if (!esSupervisor) { %>
+                <span class="badge bg-primary">
+                    <%= totalAdmins %> administrador(es)
+                </span>
+            <% } else { %>
+                <span class="badge badge-farmacia">
+                    <%= totalAgentesFarmacia %> agente(s) de farmacia
+                </span>
+            <% } %>
         </div>
 
         <div class="table-card-body">
@@ -427,9 +627,11 @@
                                 <% if (a.getRol() == 1) { %>
                                     <span class="badge badge-admin">Administrador</span>
                                 <% } else if (a.getRol() == 3) { %>
-                                    <span class="badge badge-farmacia">Farmacia</span>
+                                    <span class="badge badge-farmacia">Agente de farmacia</span>
                                 <% } else if (a.getRol() == 4) { %>
                                     <span class="badge badge-vista-total">Vista total</span>
+                                <% } else if (a.getRol() == 5) { %>
+                                    <span class="badge badge-supervisor">Supervisor</span>
                                 <% } else { %>
                                     <span class="badge badge-agente">Agente</span>
                                 <% } %>
@@ -463,7 +665,7 @@
                                         </button>
                                     </form>
 
-                                    <% if (a.getRol() != 3) { %>
+                                    <% if (a.getRol() != 3 && !esSupervisor) { %>
 
                                         <form method="post"
                                               action="<%= request.getContextPath() %>/agente"
@@ -514,7 +716,9 @@
             <input type="hidden" name="accion" value="insertar">
 
             <div class="modal-header">
-                <h5 class="modal-title">Nuevo Agente</h5>
+                <h5 class="modal-title">
+                    <%= esSupervisor ? "Nuevo agente de farmacia" : "Nuevo Agente" %>
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
 
@@ -522,7 +726,7 @@
                 <div class="row g-3">
 
                     <div class="col-md-6">
-                        <label class="form-label">Nombre</label>
+                        <label class="form-label">Nombre del agente</label>
                         <input type="text" name="nombre" class="form-control" maxlength="300" required>
                     </div>
 
@@ -536,15 +740,48 @@
                         <input type="password" name="password" class="form-control" required>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label">StaffID</label>
-                        <input type="text" name="StaffID" class="form-control" maxlength="50">
-                    </div>
+                    <% if (esSupervisor) { %>
 
-                    <div class="col-md-6" id="nuevo_estado_container">
+                        <div class="col-md-6">
+                            <label class="form-label">Centro / farmacia donde trabajará</label>
+                            <select name="StaffID" id="nuevo_StaffID" class="form-select" required>
+                                <option value="">Seleccione el centro asignado</option>
+
+                                <% for (FarmaciaSupervisor f : farmaciasSupervisor) { %>
+                                    <option value="<%= f.getStoreID() == null ? "" : f.getStoreID() %>">
+                                        <%= f.getStoreID() == null ? "" : f.getStoreID() %>
+                                        -
+                                        <%= f.getCentro() == null ? "" : f.getCentro() %>
+                                        -
+                                        <%= f.getName() == null ? "" : f.getName() %>
+                                    </option>
+                                <% } %>
+                            </select>
+
+                            <% if (farmaciasSupervisor.isEmpty()) { %>
+                                <div class="form-text text-danger">
+                                    No tiene centros asignados para crear agentes de farmacia.
+                                </div>
+                            <% } else { %>
+                                <div class="form-text">
+                                    Solo aparecen los centros asignados a su supervisión.
+                                </div>
+                            <% } %>
+                        </div>
+
+                    <% } else { %>
+
+                        <div class="col-md-6">
+                            <label class="form-label">StaffID</label>
+                            <input type="text" name="StaffID" class="form-control" maxlength="50">
+                        </div>
+
+                    <% } %>
+
+                    <div class="col-md-6 <%= esSupervisor ? "d-none" : "" %>" id="nuevo_estado_container">
                         <label class="form-label">Estado</label>
                         <select name="estado" id="nuevo_estado" class="form-select">
-                            <option value="0">Desconectado</option>
+                            <option value="0" <%= esSupervisor ? "selected" : "" %>>Desconectado</option>
                             <option value="1">Disponible</option>
                             <option value="3">Pausado</option>
                         </select>
@@ -552,15 +789,31 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Rol</label>
-                        <select name="rol" id="nuevo_rol" class="form-select">
-                            <option value="2">Agente</option>
 
-                            <% if (puedeGestionarRolesAltos) { %>
-                                <option value="1">Administrador</option>
-                                <option value="3">Farmacia</option>
-                                <option value="4">Vista total</option>
-                            <% } %>
-                        </select>
+                        <% if (esSupervisor) { %>
+
+                            <select name="rol" id="nuevo_rol" class="form-select">
+                                <option value="3" selected>Agente de farmacia</option>
+                            </select>
+
+                            <div class="form-text">
+                                Como supervisor solo puede crear agentes de farmacia.
+                            </div>
+
+                        <% } else { %>
+
+                            <select name="rol" id="nuevo_rol" class="form-select">
+                                <option value="2">Agente</option>
+
+                                <% if (esVistaTotal) { %>
+                                    <option value="1">Administrador</option>
+                                    <option value="3">Agente de farmacia</option>
+                                    <option value="4">Vista total</option>
+                                    <option value="5">Supervisor</option>
+                                <% } %>
+                            </select>
+
+                        <% } %>
                     </div>
 
                 </div>
@@ -568,7 +821,11 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-info-soft">Guardar</button>
+                <button type="submit"
+                        class="btn btn-info-soft"
+                        <%= esSupervisor && farmaciasSupervisor.isEmpty() ? "disabled" : "" %>>
+                    Guardar
+                </button>
             </div>
 
         </form>
@@ -592,7 +849,7 @@
                 <div class="row g-3">
 
                     <div class="col-md-6">
-                        <label class="form-label">Nombre</label>
+                        <label class="form-label">Nombre del agente</label>
                         <input type="text" name="nombre" id="edit_nombre" class="form-control" maxlength="300" required>
                     </div>
 
@@ -603,7 +860,28 @@
 
                     <div class="col-md-6">
                         <label class="form-label">StaffID</label>
-                        <input type="text" name="StaffID" id="edit_StaffID" class="form-control" maxlength="50">
+
+                        <% if (esSupervisor) { %>
+
+                            <select name="StaffID" id="edit_StaffID" class="form-select" required>
+                                <option value="">Seleccione el centro asignado</option>
+
+                                <% for (FarmaciaSupervisor f : farmaciasSupervisor) { %>
+                                    <option value="<%= f.getStoreID() == null ? "" : f.getStoreID() %>">
+                                        <%= f.getStoreID() == null ? "" : f.getStoreID() %>
+                                        -
+                                        <%= f.getCentro() == null ? "" : f.getCentro() %>
+                                        -
+                                        <%= f.getName() == null ? "" : f.getName() %>
+                                    </option>
+                                <% } %>
+                            </select>
+
+                        <% } else { %>
+
+                            <input type="text" name="StaffID" id="edit_StaffID" class="form-control" maxlength="50">
+
+                        <% } %>
                     </div>
 
                     <div class="col-md-3" id="edit_estado_container">
@@ -620,10 +898,15 @@
                         <select name="rol" id="edit_rol" class="form-select">
                             <option value="2">Agente</option>
 
-                            <% if (puedeGestionarRolesAltos) { %>
+                            <% if (esVistaTotal) { %>
                                 <option value="1">Administrador</option>
-                                <option value="3">Farmacia</option>
+                                <option value="3">Agente de farmacia</option>
                                 <option value="4">Vista total</option>
+                                <option value="5">Supervisor</option>
+                            <% } %>
+
+                            <% if (esSupervisor) { %>
+                                <option value="3">Agente de farmacia</option>
                             <% } %>
                         </select>
                     </div>
@@ -648,6 +931,8 @@
 <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.js"></script>
 
 <script>
+    const ES_SUPERVISOR = <%= esSupervisor ? "true" : "false" %>;
+
     $(document).ready(function () {
         $('#tablaAgentes').DataTable({
             language: {
@@ -677,7 +962,13 @@
         document.getElementById('edit_id_usuario').value = idUsuario;
         document.getElementById('edit_nombre').value = nombre;
         document.getElementById('edit_codigo').value = codigo;
-        document.getElementById('edit_StaffID').value = staffID;
+
+        const campoStaff = document.getElementById('edit_StaffID');
+
+        if (campoStaff) {
+            campoStaff.value = staffID;
+        }
+
         document.getElementById('edit_estado').value = estado;
         document.getElementById('edit_rol').value = rol;
 
@@ -701,6 +992,12 @@
             selectEstado.value = "0";
         } else {
             contenedorEstado.classList.remove("d-none");
+        }
+
+        if (ES_SUPERVISOR) {
+            contenedorEstado.classList.add("d-none");
+            selectEstado.value = "0";
+            selectRol.value = "3";
         }
     }
 
@@ -776,7 +1073,7 @@
         icon: '<%= swalIcon %>',
         title: '<%= swalTitle == null ? "" : swalTitle %>',
         text: '<%= swalText == null ? "" : swalText %>',
-        confirmButtonColor: '#0dcaf0',
+        confirmButtonColor: '<%= usarTemaVerde ? "#a7c957" : "#0dcaf0" %>',
         confirmButtonText: 'Aceptar'
     });
 </script>

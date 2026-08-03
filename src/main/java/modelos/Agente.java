@@ -18,8 +18,9 @@ public class Agente {
      * Roles:
      * 1 = Administrador
      * 2 = Agente
-     * 3 = Farmacia
+     * 3 = Agente de farmacia
      * 4 = Vista total
+     * 5 = Supervisor
      */
     private int rol;
 
@@ -201,9 +202,11 @@ public class Agente {
             case 2:
                 return "Agente";
             case 3:
-                return "Farmacia";
+                return "Agente de farmacia";
             case 4:
                 return "Vista total";
+            case 5:
+                return "Supervisor";
             default:
                 return "Otro";
         }
@@ -225,7 +228,15 @@ public class Agente {
         return rol == 3;
     }
 
+    public boolean isAgenteFarmacia() {
+        return rol == 3;
+    }
+
     public boolean isVistaTotal() {
         return rol == 4;
+    }
+
+    public boolean isSupervisor() {
+        return rol == 5;
     }
 }

@@ -4,7 +4,10 @@
 <%
     Agente agenteSesion = null;
     int rol = 2;
+
     boolean esFarmacia = false;
+    boolean esSupervisor = false;
+    boolean usarTemaVerde = false;
 
     if (session != null) {
         Object usuarioObj = session.getAttribute("usuarioObj");
@@ -25,6 +28,8 @@
     }
 
     esFarmacia = rol == 3;
+    esSupervisor = rol == 5;
+    usarTemaVerde = esFarmacia || esSupervisor;
 %>
 
 <!DOCTYPE html>
@@ -144,55 +149,56 @@
         }
 
         /* ============================================================
-           TEMA FARMACIA
-           rol = 3
+           TEMA VERDE
+           rol = 3 Agente de farmacia
+           rol = 5 Supervisor
            Color principal: #a7c957
            ============================================================ */
 
-        body.vista-farmacia {
+        body.vista-tema-verde {
             background: #f4f8ec !important;
         }
 
-        body.vista-farmacia .page-header-card,
-        body.vista-farmacia .content-card {
+        body.vista-tema-verde .page-header-card,
+        body.vista-tema-verde .content-card {
             background: #fbfdf6 !important;
             border-color: rgba(167, 201, 87, .40) !important;
         }
 
-        body.vista-farmacia .page-title,
-        body.vista-farmacia .content-card-title {
+        body.vista-tema-verde .page-title,
+        body.vista-tema-verde .content-card-title {
             color: #6f8f24 !important;
         }
 
-        body.vista-farmacia .content-card-header {
+        body.vista-tema-verde .content-card-header {
             background: rgba(167, 201, 87, .25) !important;
             border-left-color: #a7c957 !important;
         }
 
-        body.vista-farmacia .btn-info-soft {
+        body.vista-tema-verde .btn-info-soft {
             background-color: #a7c957 !important;
             border-color: #a7c957 !important;
             color: #1f2d0b !important;
         }
 
-        body.vista-farmacia .btn-info-soft:hover {
+        body.vista-tema-verde .btn-info-soft:hover {
             background-color: #95b94c !important;
             border-color: #95b94c !important;
             color: #1f2d0b !important;
         }
 
-        body.vista-farmacia .btn-light-soft {
+        body.vista-tema-verde .btn-light-soft {
             background-color: #eef6df !important;
             border-color: rgba(167, 201, 87, .45) !important;
             color: #1f2d0b !important;
         }
 
-        body.vista-farmacia .form-control:focus {
+        body.vista-tema-verde .form-control:focus {
             border-color: #a7c957 !important;
             box-shadow: 0 0 0 .2rem rgba(167, 201, 87, .25) !important;
         }
 
-        body.vista-farmacia .password-rules {
+        body.vista-tema-verde .password-rules {
             background: #eef6df !important;
             border-color: rgba(167, 201, 87, .45) !important;
             color: #6c757d !important;
@@ -210,7 +216,7 @@
     </style>
 </head>
 
-<body class="<%= esFarmacia ? "vista-farmacia" : "" %>">
+<body class="<%= usarTemaVerde ? "vista-tema-verde" : "" %>">
 
 <jsp:include page="/vistas/navbar.jsp" />
 
@@ -312,7 +318,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    const colorConfirmacion = <%= esFarmacia ? "'#a7c957'" : "'#0dcaf0'" %>;
+    const colorConfirmacion = <%= usarTemaVerde ? "'#a7c957'" : "'#0dcaf0'" %>;
 
     function validarPassword() {
         const passwordActual = document.getElementById('password_actual').value;

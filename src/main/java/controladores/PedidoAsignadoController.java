@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.List;
 import modelos.Agente;
 import modelos.AsignacionPendienteResultado;
+import modelos.FarmaciaSupervisor;
 import modelos.PedidoAsignado;
 
 @WebServlet("/pedidos-agente")
@@ -87,9 +88,16 @@ public class PedidoAsignadoController extends HttpServlet {
 
         boolean esAdmin = rolSesion != null && rolSesion == 1;
         boolean esVistaTotal = rolSesion != null && rolSesion == 4;
+        boolean esSupervisor = rolSesion != null && rolSesion == 5;
 
         String staffID = agente.getStaffID();
         String staffIDFiltro = request.getParameter("staffIDFiltro");
+
+        if (staffIDFiltro != null && !staffIDFiltro.trim().isEmpty()) {
+            staffIDFiltro = staffIDFiltro.trim();
+        } else {
+            staffIDFiltro = "";
+        }
 
         /*
          * Reglas:
@@ -102,19 +110,41 @@ public class PedidoAsignadoController extends HttpServlet {
          *      Puede ver todos los pedidos, incluyendo farmacias.
          *      Puede filtrar por StaffID desde combo.
          *
+         * rol = 5 Supervisor:
+         *      Puede ver pedidos de farmacias asignadas a su supervisión.
+         *      Puede filtrar por StaffID/farmacia desde combo.
+         *      Se manda supervisorNombre al SP para validar contra VW_FARMACIAS_SUPERVISOR.Supervisor.
+         *
          * rol = 2 Agente:
          *      Solo ve su propio StaffID.
          *
-         * rol = 3 Farmacia:
+         * rol = 3 Agente de farmacia:
          *      Solo ve su propio StaffID, que corresponde al BranchId/StoreID.
          */
         if (esAdmin || esVistaTotal) {
-            if (staffIDFiltro != null && !staffIDFiltro.trim().isEmpty()) {
+
+            if (!staffIDFiltro.trim().isEmpty()) {
                 staffID = staffIDFiltro.trim();
             } else {
                 staffID = null;
             }
+
+        } else if (esSupervisor) {
+
+            /*
+             * Para supervisor:
+             * staffID se usa como filtro de farmacia.
+             * NULL = todas sus farmacias.
+             * S0002 = solo esa farmacia, siempre que le pertenezca.
+             */
+            if (!staffIDFiltro.trim().isEmpty()) {
+                staffID = staffIDFiltro.trim();
+            } else {
+                staffID = null;
+            }
+
         } else {
+
             if (staffID == null || staffID.trim().isEmpty()) {
                 request.setAttribute("error", "El usuario logueado no tiene StaffID configurado.");
                 request.getRequestDispatcher("/vistas/pedidos_agente.jsp").forward(request, response);
@@ -135,7 +165,7 @@ public class PedidoAsignadoController extends HttpServlet {
             } catch (ParseException ex) {
                 request.setAttribute("error", "La fecha ingresada no es válida.");
                 request.setAttribute("fechaSeleccionada", fechaStr);
-                request.setAttribute("staffIDFiltro", staffIDFiltro == null ? "" : staffIDFiltro);
+                request.setAttribute("staffIDFiltro", staffIDFiltro);
                 request.getRequestDispatcher("/vistas/pedidos_agente.jsp").forward(request, response);
                 return;
             }
@@ -143,10 +173,17 @@ public class PedidoAsignadoController extends HttpServlet {
 
         PedidoAsignadoDAO pedidoDAO = new PedidoAsignadoDAO();
 
+        String supervisorNombre = null;
+
+        if (esSupervisor) {
+            supervisorNombre = agente.getNombre();
+        }
+
         List<PedidoAsignado> pedidos = pedidoDAO.listarPedidosAbiertosPorAgente(
                 staffID,
                 fechaFiltro,
-                rolSesion
+                rolSesion,
+                supervisorNombre
         );
 
         /*
@@ -154,18 +191,31 @@ public class PedidoAsignadoController extends HttpServlet {
          */
         List<Agente> agentes = null;
 
-if (esAdmin || esVistaTotal) {
-    AgenteDAO agenteDAO = new AgenteDAO();
-    agentes = agenteDAO.listarAgentes(rolSesion);
-}
+        if (esAdmin || esVistaTotal) {
+            AgenteDAO agenteDAO = new AgenteDAO();
+            agentes = agenteDAO.listarAgentes(rolSesion);
+        }
+
+        /*
+         * Lista de farmacias asignadas al supervisor.
+         */
+        List<FarmaciaSupervisor> farmaciasSupervisor = null;
+
+        if (esSupervisor) {
+            AgenteDAO agenteDAO = new AgenteDAO();
+            farmaciasSupervisor = agenteDAO.listarFarmaciasPorSupervisor(agente.getNombre());
+        }
 
         request.setAttribute("pedidos", pedidos);
         request.setAttribute("agentes", agentes);
+        request.setAttribute("farmaciasSupervisor", farmaciasSupervisor);
+
         request.setAttribute("staffID", staffID == null ? "" : staffID);
         request.setAttribute("staffIDFiltro", staffIDFiltro == null ? "" : staffIDFiltro);
         request.setAttribute("agenteNombre", agente.getNombre());
         request.setAttribute("fechaSeleccionada", fechaStr == null ? "" : fechaStr);
         request.setAttribute("rolSesion", rolSesion == null ? 0 : rolSesion);
+        request.setAttribute("esSupervisor", esSupervisor);
 
         request.getRequestDispatcher("/vistas/pedidos_agente.jsp").forward(request, response);
     }

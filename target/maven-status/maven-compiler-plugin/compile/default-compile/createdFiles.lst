@@ -8,8 +8,6 @@ modelos\PedidoAsignadoDetalle.class
 controladores\PedidoAlertaController.class
 controladores\PedidoAsignadoController.class
 dao\PedidoAsignadoDAO.class
-modelos\PushSubscriptionModel.class
-dao\PushSubscriptionDAO.class
 controladores\LogoutController.class
 dao\AgenteDAO$ResultadoOperacion.class
 dao\AgenteDAO.class
@@ -19,5 +17,5 @@ utilidades\PasswordUtil.class
 dao\PedidoAsignadoDAO$ResultadoOperacion.class
 modelos\AsignacionPendienteResultado.class
 modelos\PedidoAsignado.class
-controladores\PushSubscribeServlet.class
 configDB\ConexionSQLServer.class
+modelos\FarmaciaSupervisor.class

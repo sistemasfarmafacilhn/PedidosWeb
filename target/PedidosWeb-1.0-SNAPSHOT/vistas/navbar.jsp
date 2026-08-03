@@ -9,9 +9,12 @@
     int rol = 2;
 
     boolean esAdmin = false;
-    boolean esFarmacia = false;
+    boolean esAgenteFarmacia = false;
     boolean esVistaTotal = false;
-    boolean puedeVerMenuAdmin = false;
+    boolean esSupervisor = false;
+
+    boolean puedeVerPedidosAdmin = false;
+    boolean puedeVerGestionAgentes = false;
 
     if (session != null) {
         Object nombreSesion = session.getAttribute("nombre");
@@ -39,16 +42,29 @@
         }
 
         esAdmin = rol == 1;
-        esFarmacia = rol == 3;
+        esAgenteFarmacia = rol == 3;
         esVistaTotal = rol == 4;
-        puedeVerMenuAdmin = esAdmin || esVistaTotal;
+        esSupervisor = rol == 5;
+
+        /*
+            Admin y Vista Total ven la vista administrativa de pedidos.
+            Supervisor no entra aquí porque no debe verse como admin general.
+        */
+        puedeVerPedidosAdmin = esAdmin || esVistaTotal;
+
+        /*
+            Supervisor sí debe poder entrar a Gestión de Agentes.
+            Ahí el controller ya debe filtrar/limitar lo que puede ver o crear.
+        */
+        puedeVerGestionAgentes = esAdmin || esVistaTotal || esSupervisor;
     }
 
-    String colorNavbar = esFarmacia ? "#a7c957" : "#0dcaf0";
-    String colorTextoFarmacia = esFarmacia ? "#1f2d0b" : "#ffffff";
+    boolean usarTemaVerde = esAgenteFarmacia || esSupervisor;
+
+    String colorNavbar = usarTemaVerde ? "#a7c957" : "#0dcaf0";
 %>
 
-<nav class="navbar navbar-expand-lg navbar-dark shadow-sm <%= esFarmacia ? "navbar-farmacia" : "" %>"
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm <%= usarTemaVerde ? "navbar-tema-verde" : "" %>"
      style="background-color:<%= colorNavbar %>;">
     <div class="container-fluid">
 
@@ -66,7 +82,7 @@
 
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
-                <% if (puedeVerMenuAdmin) { %>
+                <% if (puedeVerPedidosAdmin) { %>
 
                     <li class="nav-item">
                         <a class="nav-link <%= uri.contains("/pedidos-agente") ? "active fw-semibold" : "" %>"
@@ -80,42 +96,46 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link <%= uri.contains("/agente") && !uri.contains("/agente_password.jsp") ? "active fw-semibold" : "" %>"
-                           href="<%= ctx %>/agente">
-                            <i class="bi bi-people"></i> Gestión de Agentes
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link <%= uri.contains("/agente_password.jsp") ? "active fw-semibold" : "" %>"
-                           href="<%= ctx %>/vistas/agente_password.jsp">
-                            <i class="bi bi-key"></i> Cambiar Contraseña
-                        </a>
-                    </li>
-
                 <% } else { %>
 
                     <li class="nav-item">
                         <a class="nav-link <%= uri.contains("/pedidos-agente") ? "active fw-semibold" : "" %>"
                            href="<%= ctx %>/pedidos-agente">
                             <i class="bi bi-bag-check"></i>
-                            <% if (esFarmacia) { %>
-                                Pedidos de Farmacia
+                            <% if (esAgenteFarmacia) { %>
+                                Pedidos de agente de farmacia
+                            <% } else if (esSupervisor) { %>
+                                Pedidos supervisados
                             <% } else { %>
                                 Mis Pedidos
                             <% } %>
                         </a>
                     </li>
 
+                <% } %>
+
+                <% if (puedeVerGestionAgentes) { %>
+
                     <li class="nav-item">
-                        <a class="nav-link <%= uri.contains("/agente_password.jsp") ? "active fw-semibold" : "" %>"
-                           href="<%= ctx %>/vistas/agente_password.jsp">
-                            <i class="bi bi-key"></i> Cambiar Contraseña
+                        <a class="nav-link <%= uri.contains("/agente") && !uri.contains("/agente_password.jsp") ? "active fw-semibold" : "" %>"
+                           href="<%= ctx %>/agente">
+                            <i class="bi bi-people"></i>
+                            <% if (esSupervisor) { %>
+                                Agentes de farmacia
+                            <% } else { %>
+                                Gestión de Agentes
+                            <% } %>
                         </a>
                     </li>
 
                 <% } %>
+
+                <li class="nav-item">
+                    <a class="nav-link <%= uri.contains("/agente_password.jsp") ? "active fw-semibold" : "" %>"
+                       href="<%= ctx %>/vistas/agente_password.jsp">
+                        <i class="bi bi-key"></i> Cambiar Contraseña
+                    </a>
+                </li>
 
             </ul>
 
@@ -127,8 +147,10 @@
                         <span class="badge bg-dark ms-1">Vista total</span>
                     <% } else if (esAdmin) { %>
                         <span class="badge bg-primary ms-1">Admin</span>
-                    <% } else if (esFarmacia) { %>
-                        <span class="badge badge-farmacia-navbar ms-1">Farmacia</span>
+                    <% } else if (esSupervisor) { %>
+                        <span class="badge badge-tema-verde-navbar ms-1">Supervisor</span>
+                    <% } else if (esAgenteFarmacia) { %>
+                        <span class="badge badge-tema-verde-navbar ms-1">Agente de farmacia</span>
                     <% } else { %>
                         <span class="badge bg-light text-dark ms-1">Agente</span>
                     <% } %>
@@ -146,39 +168,39 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
 <style>
-    .navbar-farmacia {
+    .navbar-tema-verde {
         background-color: #a7c957 !important;
     }
 
-    .navbar-farmacia .navbar-brand,
-    .navbar-farmacia .nav-link,
-    .navbar-farmacia .navbar-user-info {
+    .navbar-tema-verde .navbar-brand,
+    .navbar-tema-verde .nav-link,
+    .navbar-tema-verde .navbar-user-info {
         color: #1f2d0b !important;
     }
 
-    .navbar-farmacia .nav-link.active,
-    .navbar-farmacia .nav-link:hover,
-    .navbar-farmacia .navbar-brand:hover {
+    .navbar-tema-verde .nav-link.active,
+    .navbar-tema-verde .nav-link:hover,
+    .navbar-tema-verde .navbar-brand:hover {
         color: #1f2d0b !important;
         opacity: .85;
     }
 
-    .navbar-farmacia .badge-farmacia-navbar {
+    .navbar-tema-verde .badge-tema-verde-navbar {
         background-color: #6f8f24 !important;
         color: #ffffff !important;
     }
 
-    .navbar-farmacia .btn-salir-navbar {
+    .navbar-tema-verde .btn-salir-navbar {
         color: #1f2d0b !important;
         border-color: #1f2d0b !important;
     }
 
-    .navbar-farmacia .btn-salir-navbar:hover {
+    .navbar-tema-verde .btn-salir-navbar:hover {
         background-color: #1f2d0b !important;
         color: #ffffff !important;
     }
 
-    .navbar-farmacia .navbar-toggler {
+    .navbar-tema-verde .navbar-toggler {
         border-color: rgba(31, 45, 11, .45) !important;
     }
 </style>

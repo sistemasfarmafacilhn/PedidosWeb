@@ -14,9 +14,20 @@
     String codigo = agenteSesion.getCodigo() != null ? agenteSesion.getCodigo() : "";
 
     boolean esAdmin = rol == 1;
-    boolean esFarmacia = rol == 3;
+    boolean esAgenteFarmacia = rol == 3;
     boolean esVistaTotal = rol == 4;
+    boolean esSupervisor = rol == 5;
+
+    boolean usarTemaVerde = esAgenteFarmacia || esSupervisor;
+
+    /*
+        Admin y Vista Total ven el menú administrativo completo.
+        Supervisor NO entra como admin completo, pero sí puede ver:
+        - Pedidos supervisados
+        - Agentes de farmacia
+    */
     boolean puedeVerMenuAdmin = esAdmin || esVistaTotal;
+    boolean puedeVerGestionAgentes = esAdmin || esVistaTotal || esSupervisor;
 %>
 
 <!DOCTYPE html>
@@ -114,56 +125,57 @@
         }
 
         /* ============================================================
-           TEMA FARMACIA
-           rol = 3
+           TEMA VERDE
+           rol = 3 Agente de farmacia
+           rol = 5 Supervisor
            Color principal: #a7c957
            ============================================================ */
 
-        body.vista-farmacia {
+        body.vista-tema-verde {
             background: #f4f8ec !important;
         }
 
-        body.vista-farmacia .section-title {
+        body.vista-tema-verde .section-title {
             color: #6f8f24 !important;
         }
 
-        body.vista-farmacia .menu-card {
+        body.vista-tema-verde .menu-card {
             background: #eef6df !important;
             border-color: rgba(167, 201, 87, .45) !important;
         }
 
-        body.vista-farmacia .menu-card .card-title {
+        body.vista-tema-verde .menu-card .card-title {
             color: #6f8f24 !important;
         }
 
-        body.vista-farmacia .menu-icon {
+        body.vista-tema-verde .menu-icon {
             background: rgba(167, 201, 87, .25) !important;
             color: #6f8f24 !important;
         }
 
-        body.vista-farmacia .btn-info-soft {
+        body.vista-tema-verde .btn-info-soft {
             background-color: #a7c957 !important;
             border-color: #a7c957 !important;
             color: #1f2d0b !important;
         }
 
-        body.vista-farmacia .btn-info-soft:hover {
+        body.vista-tema-verde .btn-info-soft:hover {
             background-color: #95b94c !important;
             border-color: #95b94c !important;
             color: #1f2d0b !important;
         }
 
-        body.vista-farmacia .main-card {
+        body.vista-tema-verde .main-card {
             background: #fbfdf6 !important;
         }
 
-        body.vista-farmacia .top-bar {
+        body.vista-tema-verde .top-bar {
             background: #fbfdf6 !important;
         }
     </style>
 </head>
 
-<body class="bg-light <%= esFarmacia ? "vista-farmacia" : "" %>">
+<body class="bg-light <%= usarTemaVerde ? "vista-tema-verde" : "" %>">
 
 <jsp:include page="/vistas/navbar.jsp" />
 
@@ -195,7 +207,7 @@
                                         <% if (esVistaTotal) { %>
                                             <h5 class="card-title">Vista Total de Pedidos</h5>
                                             <p class="card-text flex-grow-1">
-                                                Consulta todos los pedidos asignados a agentes y farmacias, filtrados por fecha y estado.
+                                                Consulta todos los pedidos asignados a agentes y agentes de farmacia, filtrados por fecha y estado.
                                             </p>
                                         <% } else { %>
                                             <h5 class="card-title">Todos los Pedidos</h5>
@@ -212,61 +224,23 @@
                                 </div>
                             </div>
 
-                            <!-- ADMIN / VISTA TOTAL: GESTIÓN DE AGENTES -->
-                            <div class="col-12 col-md-6 col-xl-4">
-                                <div class="card menu-card card-hover h-100">
-                                    <div class="card-body d-flex flex-column">
-                                        <div class="menu-icon">AG</div>
-
-                                        <h5 class="card-title">Gestión de Agentes</h5>
-
-                                        <% if (esVistaTotal) { %>
-                                            <p class="card-text flex-grow-1">
-                                                Crea, edita y administra agentes, administradores, farmacias y usuarios de vista total.
-                                            </p>
-                                        <% } else { %>
-                                            <p class="card-text flex-grow-1">
-                                                Crea, edita, elimina lógicamente y administra el estado de agentes.
-                                            </p>
-                                        <% } %>
-
-                                        <a href="<%= request.getContextPath() %>/agente"
-                                           class="btn btn-info-soft w-100">
-                                            Ingresar
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- ADMIN / VISTA TOTAL: CAMBIAR CONTRASEÑA -->
-                            <div class="col-12 col-md-6 col-xl-4">
-                                <div class="card menu-card card-hover h-100">
-                                    <div class="card-body d-flex flex-column">
-                                        <div class="menu-icon">PW</div>
-                                        <h5 class="card-title">Cambiar Contraseña</h5>
-                                        <p class="card-text flex-grow-1">
-                                            Actualiza tu contraseña ingresando la contraseña actual y la nueva.
-                                        </p>
-                                        <a href="<%= request.getContextPath() %>/vistas/agente_password.jsp"
-                                           class="btn btn-info-soft w-100">
-                                            Ingresar
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
                         <% } else { %>
 
-                            <!-- AGENTE / FARMACIA: MIS PEDIDOS -->
+                            <!-- AGENTE / AGENTE DE FARMACIA / SUPERVISOR: PEDIDOS -->
                             <div class="col-12 col-md-6 col-xl-4">
                                 <div class="card menu-card card-hover h-100">
                                     <div class="card-body d-flex flex-column">
                                         <div class="menu-icon">MP</div>
 
-                                        <% if (esFarmacia) { %>
-                                            <h5 class="card-title">Pedidos de Farmacia</h5>
+                                        <% if (esSupervisor) { %>
+                                            <h5 class="card-title">Pedidos supervisados</h5>
                                             <p class="card-text flex-grow-1">
-                                                Consulta y gestiona los pedidos pickup asignados a tu farmacia.
+                                                Consulta los pedidos de los centros o sucursales asignados a tu supervisión.
+                                            </p>
+                                        <% } else if (esAgenteFarmacia) { %>
+                                            <h5 class="card-title">Pedidos de agente de farmacia</h5>
+                                            <p class="card-text flex-grow-1">
+                                                Consulta y gestiona los pedidos pickup asignados a tu centro o sucursal.
                                             </p>
                                         <% } else { %>
                                             <h5 class="card-title">Mis Pedidos</h5>
@@ -283,16 +257,36 @@
                                 </div>
                             </div>
 
-                            <!-- AGENTE / FARMACIA: CAMBIAR CONTRASEÑA -->
+                        <% } %>
+
+                        <% if (puedeVerGestionAgentes) { %>
+
+                            <!-- ADMIN / VISTA TOTAL / SUPERVISOR: GESTIÓN DE AGENTES -->
                             <div class="col-12 col-md-6 col-xl-4">
                                 <div class="card menu-card card-hover h-100">
                                     <div class="card-body d-flex flex-column">
-                                        <div class="menu-icon">PW</div>
-                                        <h5 class="card-title">Cambiar Contraseña</h5>
-                                        <p class="card-text flex-grow-1">
-                                            Actualiza tu contraseña ingresando la contraseña actual y la nueva.
-                                        </p>
-                                        <a href="<%= request.getContextPath() %>/vistas/agente_password.jsp"
+                                        <div class="menu-icon">AG</div>
+
+                                        <% if (esSupervisor) { %>
+                                            <h5 class="card-title">Agentes de farmacia</h5>
+                                            <p class="card-text flex-grow-1">
+                                                Consulta y administra los agentes de farmacia asignados a tu supervisión.
+                                            </p>
+                                        <% } else { %>
+                                            <h5 class="card-title">Gestión de Agentes</h5>
+
+                                            <% if (esVistaTotal) { %>
+                                                <p class="card-text flex-grow-1">
+                                                    Crea, edita y administra agentes, administradores, agentes de farmacia, supervisores y usuarios de vista total.
+                                                </p>
+                                            <% } else { %>
+                                                <p class="card-text flex-grow-1">
+                                                    Crea, edita, elimina lógicamente y administra el estado de agentes.
+                                                </p>
+                                            <% } %>
+                                        <% } %>
+
+                                        <a href="<%= request.getContextPath() %>/agente"
                                            class="btn btn-info-soft w-100">
                                             Ingresar
                                         </a>
@@ -301,6 +295,23 @@
                             </div>
 
                         <% } %>
+
+                        <!-- TODOS: CAMBIAR CONTRASEÑA -->
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="card menu-card card-hover h-100">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="menu-icon">PW</div>
+                                    <h5 class="card-title">Cambiar Contraseña</h5>
+                                    <p class="card-text flex-grow-1">
+                                        Actualiza tu contraseña ingresando la contraseña actual y la nueva.
+                                    </p>
+                                    <a href="<%= request.getContextPath() %>/vistas/agente_password.jsp"
+                                       class="btn btn-info-soft w-100">
+                                        Ingresar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
 

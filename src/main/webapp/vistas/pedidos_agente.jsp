@@ -1,8 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Collections" %>
 <%@ page import="modelos.PedidoAsignado" %>
 <%@ page import="modelos.PedidoAsignadoDetalle" %>
 <%@ page import="modelos.Agente" %>
+<%@ page import="modelos.FarmaciaSupervisor" %>
 <%@ page import="java.math.BigDecimal" %>
 
 <%
@@ -13,12 +15,17 @@
     boolean esAdmin = rolAgente == 1;
     boolean esFarmacia = rolAgente == 3;
     boolean esVistaTotal = rolAgente == 4;
+    boolean esSupervisor = rolAgente == 5;
+
+    boolean mostrarSucursalComoAsignado = esFarmacia || esSupervisor;
+    boolean usarTemaVerde = esFarmacia || esSupervisor;
 
     /*
-        rol 1 = Administrador: ve pedidos que no sean farmacia.
-        rol 4 = Vista total: ve todos, incluyendo farmacia.
+        rol 1 = Administrador: ve pedidos que no sean agente de farmacia.
+        rol 4 = Vista total: ve todos, incluyendo agentes de farmacia.
         rol 2 = Agente: gestiona sus pedidos.
-        rol 3 = Farmacia: gestiona sus pickup.
+        rol 3 = Agente de farmacia: gestiona sus pickup.
+        rol 5 = Supervisor: ve pedidos de sus centros/sucursales asignadas.
     */
     boolean mostrarAccionesPedido = !esAdmin && !esVistaTotal;
     boolean mostrarEstadoAgente = rolAgente == 2;
@@ -29,7 +36,10 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><%= esFarmacia ? "Pedidos de Farmacia" : "Mis Pedidos Asignados" %></title>
+
+        <title>
+            <%= esFarmacia ? "Pedidos de agente de farmacia" : esSupervisor ? "Pedidos supervisados" : "Mis Pedidos Asignados" %>
+        </title>
 
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -219,8 +229,9 @@
             }
 
             /* ============================================================
-               TEMA FARMACIA
-               rol = 3
+               TEMA VERDE
+               rol = 3 Agente de farmacia
+               rol = 5 Supervisor
                Color principal: #a7c957
                ============================================================ */
 
@@ -333,7 +344,7 @@
         </style>
     </head>
 
-    <body class="<%= esFarmacia ? "vista-farmacia" : "" %>">
+    <body class="<%= usarTemaVerde ? "vista-farmacia" : "" %>">
 
         <jsp:include page="/vistas/navbar.jsp" />
 
@@ -353,6 +364,13 @@
             String error = (String) request.getAttribute("error");
 
             List<Agente> agentes = (List<Agente>) request.getAttribute("agentes");
+            List<FarmaciaSupervisor> farmaciasSupervisor =
+                    (List<FarmaciaSupervisor>) request.getAttribute("farmaciasSupervisor");
+
+            if (farmaciasSupervisor == null) {
+                farmaciasSupervisor = Collections.emptyList();
+            }
+
             String staffIDFiltro = (String) request.getAttribute("staffIDFiltro");
 
             if (staffID == null) {
@@ -421,11 +439,11 @@
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <div>
                     <h3 class="m-0 text-info">
-                        <%= esFarmacia ? "Pedidos de Farmacia" : "Mis Pedidos Asignados" %>
+                        <%= esFarmacia ? "Pedidos de agente de farmacia" : esSupervisor ? "Pedidos supervisados" : "Mis Pedidos Asignados" %>
                     </h3>
 
                     <div class="text-muted small">
-                        <%= esFarmacia ? "Farmacia" : "Agente" %>: <strong><%= agenteNombre %></strong>
+                        <%= esFarmacia ? "Agente de farmacia" : esSupervisor ? "Supervisor" : "Agente" %>: <strong><%= agenteNombre %></strong>
 
                         <% if (!staffID.trim().isEmpty()) { %>
                             | StaffID: <strong><%= staffID %></strong>
@@ -434,7 +452,9 @@
                         <% if (mostrarEstadoAgente) { %>
                             | Estado: <strong><%= textoEstadoAgente %></strong>
                         <% } else if (esFarmacia) { %>
-                            | Rol: <strong>Farmacia</strong>
+                            | Rol: <strong>Agente de farmacia</strong>
+                        <% } else if (esSupervisor) { %>
+                            | Rol: <strong>Supervisor</strong>
                         <% } else if (esVistaTotal) { %>
                             | Rol: <strong>Vista total</strong>
                         <% } else { %>
@@ -515,7 +535,7 @@
                                value="<%= fechaSeleccionada %>">
                     </div>
 
-                    <% if (!mostrarAccionesPedido) { %>
+                    <% if (esAdmin || esVistaTotal) { %>
                         <div class="col-12 col-md-4">
                             <label class="form-label">Agente</label>
                             <select class="form-select" name="staffIDFiltro">
@@ -538,9 +558,11 @@
                                             <option value="<%= agStaffID %>" <%= seleccionado ? "selected" : "" %>>
                                                 <%= agStaffID %> - <%= agNombre %>
                                                 <% if (ag.getRol() == 3) { %>
-                                                    (Farmacia)
+                                                    (Agente de farmacia)
                                                 <% } else if (ag.getRol() == 4) { %>
                                                     (Vista total)
+                                                <% } else if (ag.getRol() == 5) { %>
+                                                    (Supervisor)
                                                 <% } %>
                                             </option>
                                 <%
@@ -548,6 +570,31 @@
                                     }
                                 } %>
                             </select>
+                        </div>
+                    <% } else if (esSupervisor) { %>
+                        <div class="col-12 col-md-5">
+                            <label class="form-label">Farmacia supervisada</label>
+                            <select class="form-select" name="staffIDFiltro">
+                                <option value="">Todas mis farmacias</option>
+
+                                <% for (FarmaciaSupervisor f : farmaciasSupervisor) {
+                                    String store = f.getStoreID() == null ? "" : f.getStoreID();
+                                    String centro = f.getCentro() == null ? "" : f.getCentro();
+                                    String name = f.getName() == null ? "" : f.getName();
+                                    boolean seleccionado = store.equalsIgnoreCase(staffIDFiltro);
+                                %>
+                                    <option value="<%= store %>" <%= seleccionado ? "selected" : "" %>>
+                                        <%= store %> - <%= centro %> - <%= name %>
+                                    </option>
+                                <% } %>
+                            </select>
+
+                            <% if (farmaciasSupervisor.isEmpty()) { %>
+                                <div class="form-text text-danger">
+                                    No tiene farmacias asignadas para supervisar.
+                                </div>
+                            <% } else { %>
+                            <% } %>
                         </div>
                     <% } else { %>
                         <input type="hidden" name="staffIDFiltro" value="">
@@ -638,7 +685,7 @@
                 <div class="empty-state">
                     <h5 class="mb-2">No hay pedidos disponibles</h5>
                     <p class="mb-0">
-                        No tienes pedidos asignados para la fecha seleccionada.
+                        No hay pedidos para la fecha seleccionada.
                     </p>
                 </div>
 
@@ -757,12 +804,18 @@
 
                                         <div class="info-line">
                                             <div class="k">
-                                                <%= esFarmacia ? "Farmacia asignada" : "Agente asignado" %>
+                                                <%= mostrarSucursalComoAsignado ? "Sucursal" : "Agente asignado" %>
                                             </div>
                                             <div class="v">
-                                                <%= p.getNombreAgente() != null && !p.getNombreAgente().trim().isEmpty()
-                                                        ? p.getNombreAgente()
-                                                        : "Sin asignar" %>
+                                                <% if (mostrarSucursalComoAsignado) { %>
+                                                    <%= p.getBranchName() != null && !p.getBranchName().trim().isEmpty()
+                                                            ? p.getBranchName()
+                                                            : "Sin sucursal" %>
+                                                <% } else { %>
+                                                    <%= p.getNombreAgente() != null && !p.getNombreAgente().trim().isEmpty()
+                                                            ? p.getNombreAgente()
+                                                            : "Sin asignar" %>
+                                                <% } %>
                                             </div>
                                         </div>
 
@@ -806,10 +859,12 @@
                                             <div class="v"><%= p.getDeliveryAddress() != null ? p.getDeliveryAddress() : "" %></div>
                                         </div>
 
-                                        <div class="info-line">
-                                            <div class="k">Sucursal</div>
-                                            <div class="v"><%= p.getBranchName() != null ? p.getBranchName() : "" %></div>
-                                        </div>
+                                        <% if (!mostrarSucursalComoAsignado) { %>
+                                            <div class="info-line">
+                                                <div class="k">Sucursal</div>
+                                                <div class="v"><%= p.getBranchName() != null ? p.getBranchName() : "" %></div>
+                                            </div>
+                                        <% } %>
 
                                         <div class="info-line">
                                             <div class="k">Pago</div>
@@ -1051,7 +1106,7 @@
                         icon: "<%= icon %>",
                         title: "<%= title %>",
                         text: "<%= text %>",
-                        confirmButtonColor: "<%= esFarmacia ? "#a7c957" : "#0dcaf0" %>",
+                        confirmButtonColor: "<%= usarTemaVerde ? "#a7c957" : "#0dcaf0" %>",
                         confirmButtonText: "Aceptar"
                     });
                 </script>
@@ -1064,8 +1119,8 @@
         <script>
             const contextPath = "<%= request.getContextPath() %>";
             const pollingPedidosActivo = <%= mostrarAccionesPedido ? "true" : "false" %>;
-            const esFarmacia = <%= esFarmacia ? "true" : "false" %>;
-            const colorPrincipal = esFarmacia ? "#a7c957" : "#0dcaf0";
+            const usarTemaVerde = <%= usarTemaVerde ? "true" : "false" %>;
+            const colorPrincipal = usarTemaVerde ? "#a7c957" : "#0dcaf0";
 
             let ultimoIdControlPedido = 0;
             let verificandoNuevoPedido = false;
