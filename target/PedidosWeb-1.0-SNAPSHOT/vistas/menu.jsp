@@ -45,7 +45,7 @@
 
     <style>
         body {
-            background: #f5f5f5;
+            background: #F2FBFE;
         }
 
         .card-hover {
@@ -54,7 +54,7 @@
 
         .card-hover:hover {
             transform: translateY(-3px);
-            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+            box-shadow: 0 0.5rem 1rem rgba(0,180,231,0.20);
         }
 
         .main-card {
@@ -65,18 +65,18 @@
         .menu-card {
             border: 2px solid transparent;
             border-radius: 16px;
-            background: #f0f0f0;
+            background: #E8F8FD;
             height: 100%;
         }
 
         .menu-card .card-title {
-            color: #0dcaf0;
+            color: #00B4E7;
             font-weight: 700;
             text-align: center;
         }
 
         .menu-card .card-text {
-            color: #6c757d;
+            color: #0092BA;
             font-size: 0.95rem;
             text-align: center;
         }
@@ -85,8 +85,8 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: #e8f9fd;
-            color: #0dcaf0;
+            background: #FFFFFF;
+            color: #00B4E7;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -97,25 +97,25 @@
 
         .section-title {
             font-weight: 700;
-            color: #0dcaf0;
+            color: #00B4E7;
         }
 
         .btn-info-soft {
-            background-color: #0dcaf0;
-            border-color: #0dcaf0;
+            background-color: #00B4E7;
+            border-color: #00B4E7;
             color: #ffffff;
         }
 
         .btn-info-soft:hover {
-            background-color: #31d2f2;
-            border-color: #25cff2;
+            background-color: #0092BA;
+            border-color: #0092BA;
             color: #ffffff;
         }
 
         .top-bar {
             background: #ffffff;
             border-radius: 14px;
-            box-shadow: 0 0.125rem 0.45rem rgba(0,0,0,.06);
+            box-shadow: 0 0.125rem 0.45rem rgba(0,180,231,.10);
             padding: 1rem;
             margin-bottom: 1.5rem;
         }
@@ -128,49 +128,49 @@
            TEMA VERDE
            rol = 3 Agente de farmacia
            rol = 5 Supervisor
-           Color principal: #a7c957
+           Color principal: #00CF78
            ============================================================ */
 
         body.vista-tema-verde {
-            background: #f4f8ec !important;
+            background: #E5FBF0 !important;
         }
 
         body.vista-tema-verde .section-title {
-            color: #6f8f24 !important;
+            color: #00A863 !important;
         }
 
         body.vista-tema-verde .menu-card {
-            background: #eef6df !important;
-            border-color: rgba(167, 201, 87, .45) !important;
+            background: #E5FBF0 !important;
+            border-color: rgba(0, 207, 120, .45) !important;
         }
 
         body.vista-tema-verde .menu-card .card-title {
-            color: #6f8f24 !important;
+            color: #00A863 !important;
         }
 
         body.vista-tema-verde .menu-icon {
-            background: rgba(167, 201, 87, .25) !important;
-            color: #6f8f24 !important;
+            background: #FFFFFF !important;
+            color: #00A863 !important;
         }
 
         body.vista-tema-verde .btn-info-soft {
-            background-color: #a7c957 !important;
-            border-color: #a7c957 !important;
-            color: #1f2d0b !important;
+            background-color: #00CF78 !important;
+            border-color: #00CF78 !important;
+            color: #ffffff !important;
         }
 
         body.vista-tema-verde .btn-info-soft:hover {
-            background-color: #95b94c !important;
-            border-color: #95b94c !important;
-            color: #1f2d0b !important;
+            background-color: #00A863 !important;
+            border-color: #00A863 !important;
+            color: #ffffff !important;
         }
 
         body.vista-tema-verde .main-card {
-            background: #fbfdf6 !important;
+            background: #ffffff !important;
         }
 
         body.vista-tema-verde .top-bar {
-            background: #fbfdf6 !important;
+            background: #ffffff !important;
         }
     </style>
 </head>

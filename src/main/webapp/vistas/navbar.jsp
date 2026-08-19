@@ -61,7 +61,7 @@
 
     boolean usarTemaVerde = esAgenteFarmacia || esSupervisor;
 
-    String colorNavbar = usarTemaVerde ? "#a7c957" : "#0dcaf0";
+    String colorNavbar = usarTemaVerde ? "#00CF78" : "#00B4E7";
 %>
 
 <nav class="navbar navbar-expand-lg navbar-dark shadow-sm <%= usarTemaVerde ? "navbar-tema-verde" : "" %>"
@@ -169,38 +169,38 @@
 
 <style>
     .navbar-tema-verde {
-        background-color: #a7c957 !important;
+        background-color: #00CF78 !important;
     }
 
     .navbar-tema-verde .navbar-brand,
     .navbar-tema-verde .nav-link,
     .navbar-tema-verde .navbar-user-info {
-        color: #1f2d0b !important;
+        color: #FFFFFF !important;
     }
 
     .navbar-tema-verde .nav-link.active,
     .navbar-tema-verde .nav-link:hover,
     .navbar-tema-verde .navbar-brand:hover {
-        color: #1f2d0b !important;
+        color: #FFFFFF !important;
         opacity: .85;
     }
 
     .navbar-tema-verde .badge-tema-verde-navbar {
-        background-color: #6f8f24 !important;
+        background-color: #00B4E7 !important;
         color: #ffffff !important;
     }
 
     .navbar-tema-verde .btn-salir-navbar {
-        color: #1f2d0b !important;
-        border-color: #1f2d0b !important;
+        color: #FFFFFF !important;
+        border-color: #FFFFFF !important;
     }
 
     .navbar-tema-verde .btn-salir-navbar:hover {
-        background-color: #1f2d0b !important;
-        color: #ffffff !important;
+        background-color: #FFFFFF !important;
+        color: #00CF78 !important;
     }
 
     .navbar-tema-verde .navbar-toggler {
-        border-color: rgba(31, 45, 11, .45) !important;
+        border-color: rgba(255, 255, 255, .45) !important;
     }
 </style>

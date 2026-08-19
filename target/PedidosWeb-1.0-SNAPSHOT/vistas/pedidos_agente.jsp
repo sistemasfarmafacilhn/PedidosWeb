@@ -66,11 +66,11 @@
             .loader-text {
                 margin-top: 10px;
                 font-weight: 500;
-                color: #0dcaf0;
+                color: #00B4E7;
             }
 
             body {
-                background: #f5f5f5;
+                background: #F2FBFE;
             }
 
             .card-hover {
@@ -79,18 +79,18 @@
 
             .card-hover:hover {
                 transform: translateY(-3px);
-                box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+                box-shadow: 0 0.5rem 1rem rgba(0,180,231,0.20);
             }
 
             .pedido-card {
-                background: #eeeeee;
-                border: 1px solid rgba(0,0,0,.06);
+                background: #E8F8FD;
+                border: 1px solid rgba(0,180,231,.12);
                 border-radius: .9rem;
                 overflow: hidden;
             }
 
             .pedido-card .card-footer {
-                background: #f7f7f7 !important;
+                background: #F2FBFE !important;
             }
 
             .pedido-header {
@@ -114,7 +114,7 @@
             }
 
             .info-line .k {
-                color: #6c757d;
+                color: #0092BA;
             }
 
             .info-line .v {
@@ -125,18 +125,18 @@
             }
 
             .estado-box {
-                border: 1px solid rgba(0,0,0,.06);
+                border: 1px solid rgba(0,180,231,.12);
                 border-radius: .75rem;
                 overflow: hidden;
                 background: #fff;
             }
 
             .estado-abierto {
-                border-left: 6px solid #0dcaf0;
+                border-left: 6px solid #00B4E7;
             }
 
             .estado-abierto .estado-header {
-                background: rgba(13,202,240,.16);
+                background: #E8F8FD;
             }
 
             .estado-cerrado {
@@ -175,17 +175,17 @@
             }
 
             .estado-scroll::-webkit-scrollbar-thumb {
-                background: #0dcaf0;
+                background: #00B4E7;
                 border-radius: 10px;
             }
 
             .estado-scroll::-webkit-scrollbar-track {
-                background: #f1f1f1;
+                background: #E8F8FD;
             }
 
             .producto-table th {
                 font-size: .82rem;
-                color: #6c757d;
+                color: #0092BA;
             }
 
             .producto-table td {
@@ -194,13 +194,13 @@
             }
 
             .text-order {
-                color: #0dcaf0;
+                color: #00B4E7;
                 font-weight: 700;
             }
 
             .total-box {
                 background: #ffffff;
-                border: 1px solid rgba(0,0,0,.07);
+                border: 1px solid rgba(0,180,231,.15);
                 border-radius: .75rem;
                 padding: .75rem;
             }
@@ -208,10 +208,10 @@
             .empty-state {
                 background: #fff;
                 border-radius: .75rem;
-                box-shadow: 0 0.125rem 0.45rem rgba(0,0,0,.06);
+                box-shadow: 0 0.125rem 0.45rem rgba(0,180,231,.10);
                 padding: 2rem;
                 text-align: center;
-                color: #6c757d;
+                color: #0092BA;
             }
 
             .pedido-item.oculto-estado {
@@ -223,95 +223,91 @@
                 padding-bottom: 4px;
             }
 
-            .pago-aprobado {
-                background-color: #5fc3a7 !important;
-                border-color: #3fa68a !important;
-            }
 
             /* ============================================================
                TEMA VERDE
                rol = 3 Agente de farmacia
                rol = 5 Supervisor
-               Color principal: #a7c957
+               Color principal: #00CF78
                ============================================================ */
 
             body.vista-farmacia {
-                background: #f4f8ec;
+                background: #E5FBF0;
             }
 
             body.vista-farmacia .loader-text {
-                color: #a7c957 !important;
+                color: #00CF78 !important;
             }
 
             body.vista-farmacia .spinner-border.text-info {
-                color: #a7c957 !important;
+                color: #00CF78 !important;
             }
 
             body.vista-farmacia .text-info,
             body.vista-farmacia .text-order {
-                color: #6f8f24 !important;
+                color: #00A863 !important;
             }
 
             body.vista-farmacia .btn-info {
-                background-color: #a7c957 !important;
-                border-color: #a7c957 !important;
-                color: #1f2d0b !important;
+                background-color: #00CF78 !important;
+                border-color: #00CF78 !important;
+                color: #ffffff !important;
             }
 
             body.vista-farmacia .btn-outline-info {
-                color: #6f8f24 !important;
-                border-color: #a7c957 !important;
+                color: #00A863 !important;
+                border-color: #00CF78 !important;
             }
 
             body.vista-farmacia .btn-outline-info:hover,
             body.vista-farmacia .btn-outline-info.active {
-                background-color: #a7c957 !important;
-                border-color: #a7c957 !important;
-                color: #1f2d0b !important;
+                background-color: #00CF78 !important;
+                border-color: #00CF78 !important;
+                color: #ffffff !important;
             }
 
             body.vista-farmacia .badge.bg-info {
-                background-color: #a7c957 !important;
-                color: #1f2d0b !important;
+                background-color: #00CF78 !important;
+                color: #ffffff !important;
             }
 
             body.vista-farmacia .estado-abierto {
-                border-left-color: #a7c957 !important;
+                border-left-color: #00CF78 !important;
             }
 
             body.vista-farmacia .estado-abierto .estado-header {
-                background: rgba(167, 201, 87, .25) !important;
+                background: #E5FBF0 !important;
             }
 
             body.vista-farmacia .estado-scroll::-webkit-scrollbar-thumb {
-                background: #a7c957 !important;
+                background: #00CF78 !important;
             }
 
             body.vista-farmacia .table-info {
-                --bs-table-bg: rgba(167, 201, 87, .25);
-                --bs-table-color: #1f2d0b;
-                border-color: rgba(167, 201, 87, .45);
+                --bs-table-bg: #E5FBF0;
+                --bs-table-color: #00693D;
+                border-color: rgba(0, 207, 120, .45);
             }
 
             body.vista-farmacia .total-box {
-                border-color: rgba(167, 201, 87, .45);
+                border-color: rgba(0, 207, 120, .45);
             }
 
             body.vista-farmacia .pedido-card {
-                background: #eef6df;
-                border-color: rgba(167, 201, 87, .40);
+                background: #E5FBF0;
+                border-color: rgba(0, 207, 120, .40);
             }
 
             body.vista-farmacia .pedido-card .card-footer {
-                background: #f4f8ec !important;
+                background: #E5FBF0 !important;
             }
 
             body.vista-farmacia .bg-white {
-                background-color: #fbfdf6 !important;
+                background-color: #ffffff !important;
             }
 
             body.vista-farmacia .empty-state {
-                background: #fbfdf6;
+                background: #ffffff;
             }
 
             @media (max-width: 576px) {
@@ -731,9 +727,6 @@
                                     }
 
                                     String pedidoCardClass = "pedido-card card-hover h-100 shadow-sm";
-                                    if ("approved".equalsIgnoreCase(p.getPaymentStatus())) {
-                                        pedidoCardClass += " pago-aprobado";
-                                    }
                             %>
 
                             <div class="col-12 col-md-6 col-xl-4 pedido-item"
@@ -1106,7 +1099,7 @@
                         icon: "<%= icon %>",
                         title: "<%= title %>",
                         text: "<%= text %>",
-                        confirmButtonColor: "<%= usarTemaVerde ? "#a7c957" : "#0dcaf0" %>",
+                        confirmButtonColor: "<%= usarTemaVerde ? "#00CF78" : "#00B4E7" %>",
                         confirmButtonText: "Aceptar"
                     });
                 </script>
@@ -1120,7 +1113,7 @@
             const contextPath = "<%= request.getContextPath() %>";
             const pollingPedidosActivo = <%= mostrarAccionesPedido ? "true" : "false" %>;
             const usarTemaVerde = <%= usarTemaVerde ? "true" : "false" %>;
-            const colorPrincipal = usarTemaVerde ? "#a7c957" : "#0dcaf0";
+            const colorPrincipal = usarTemaVerde ? "#00CF78" : "#00B4E7";
 
             let ultimoIdControlPedido = 0;
             let verificandoNuevoPedido = false;

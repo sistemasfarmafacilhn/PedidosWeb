@@ -18,7 +18,7 @@
 
     <style>
         body {
-            background: #f5f6fa;
+            background: #E8F8FD;
         }
 
         .card-hover {
@@ -29,7 +29,7 @@
 
         .card-hover:hover {
             transform: translateY(-3px);
-            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+            box-shadow: 0 0.5rem 1rem rgba(0,180,231,0.20);
         }
 
         .logo {
@@ -37,25 +37,25 @@
         }
 
         .system-title {
-            color: #0dcaf0;
+            color: #00B4E7;
             font-weight: 700;
         }
 
         .btn-login {
-            background-color: #0dcaf0;
-            border-color: #0dcaf0;
-            color: white;
+            background-color: #00B4E7;
+            border-color: #00B4E7;
+            color: #FFFFFF;
             font-weight: 600;
         }
 
         .btn-login:hover {
-            background-color: #0bb5d6;
-            border-color: #0bb5d6;
-            color: white;
+            background-color: #0092BA;
+            border-color: #0092BA;
+            color: #FFFFFF;
         }
 
         .input-group-text {
-            background-color: #f8f9fa;
+            background-color: #E8F8FD;
         }
     </style>
 </head>

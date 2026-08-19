@@ -22,7 +22,7 @@
 
     <style>
         body {
-            background: #f5f5f5;
+            background: #F2FBFE;
         }
 
         .page-wrapper {
@@ -32,34 +32,34 @@
         .page-header-card {
             background: #ffffff;
             border-radius: 18px;
-            border: 1px solid rgba(0,0,0,.06);
-            box-shadow: 0 0.125rem 0.45rem rgba(0,0,0,.06);
+            border: 1px solid rgba(0,180,231,.15);
+            box-shadow: 0 0.125rem 0.45rem rgba(0,180,231,.10);
             padding: 1.25rem;
             margin-bottom: 1.5rem;
         }
 
         .page-title {
-            color: #0dcaf0;
+            color: #00B4E7;
             font-weight: 800;
             margin-bottom: .15rem;
         }
 
         .page-subtitle {
-            color: #6c757d;
+            color: #0092BA;
             font-size: .95rem;
         }
 
         .content-card {
             background: #ffffff;
             border-radius: 18px;
-            border: 1px solid rgba(0,0,0,.06);
-            box-shadow: 0 0.125rem 0.45rem rgba(0,0,0,.06);
+            border: 1px solid rgba(0,180,231,.15);
+            box-shadow: 0 0.125rem 0.45rem rgba(0,180,231,.10);
             overflow: hidden;
         }
 
         .content-card-header {
-            background: rgba(13,202,240,.16);
-            border-left: 6px solid #0dcaf0;
+            background: #E8F8FD;
+            border-left: 6px solid #00B4E7;
             padding: 1rem 1.25rem;
             display: flex;
             justify-content: space-between;
@@ -69,13 +69,13 @@
         }
 
         .content-card-title {
-            color: #0dcaf0;
+            color: #00B4E7;
             font-weight: 700;
             margin: 0;
         }
 
         .content-card-subtitle {
-            color: #6c757d;
+            color: #0092BA;
             font-size: .875rem;
             margin: 0;
         }
@@ -85,28 +85,28 @@
         }
 
         .btn-info-soft {
-            background-color: #0dcaf0;
-            border-color: #0dcaf0;
+            background-color: #00B4E7;
+            border-color: #00B4E7;
             color: #ffffff;
             font-weight: 600;
             border-radius: .65rem;
         }
 
         .btn-info-soft:hover {
-            background-color: #31d2f2;
-            border-color: #25cff2;
+            background-color: #0092BA;
+            border-color: #0092BA;
             color: #ffffff;
         }
 
         .btn-outline-info-soft {
-            border-color: #0dcaf0;
-            color: #0dcaf0;
+            border-color: #00B4E7;
+            color: #00B4E7;
             font-weight: 600;
             border-radius: .65rem;
         }
 
         .btn-outline-info-soft:hover {
-            background-color: #0dcaf0;
+            background-color: #00B4E7;
             color: #ffffff;
         }
 
@@ -128,8 +128,8 @@
         }
 
         .badge-agente {
-            background-color: #0dcaf0;
-            color: #212529;
+            background-color: #00B4E7;
+            color: #ffffff;
         }
 
         .badge-farmacia {
@@ -150,22 +150,22 @@
         .modal-content {
             border-radius: 18px;
             border: none;
-            box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+            box-shadow: 0 0.5rem 1rem rgba(0,180,231,.20);
         }
 
         .modal-header {
-            background: rgba(13,202,240,.16);
-            border-left: 6px solid #0dcaf0;
-            border-bottom: 1px solid rgba(0,0,0,.06);
+            background: #E8F8FD;
+            border-left: 6px solid #00B4E7;
+            border-bottom: 1px solid rgba(0,180,231,.15);
         }
 
         .modal-title {
-            color: #0dcaf0;
+            color: #00B4E7;
             font-weight: 700;
         }
 
         .form-label {
-            color: #6c757d;
+            color: #0092BA;
             font-weight: 600;
         }
 
@@ -176,14 +176,14 @@
 
         .form-control:focus,
         .form-select:focus {
-            border-color: #0dcaf0;
-            box-shadow: 0 0 0 .2rem rgba(13,202,240,.20);
+            border-color: #00B4E7;
+            box-shadow: 0 0 0 .2rem rgba(0,180,231,.20);
         }
 
         .filtro-supervisor-card {
             margin-top: 1rem;
             padding-top: 1rem;
-            border-top: 1px solid rgba(0,0,0,.08);
+            border-top: 1px solid rgba(0,180,231,.15);
         }
 
         table.dataTable {
@@ -192,10 +192,10 @@
         }
 
         #tablaAgentes thead th {
-            background: #e8f9fd;
-            color: #0dcaf0;
+            background: #E8F8FD;
+            color: #00B4E7;
             font-weight: 700;
-            border-bottom: 1px solid rgba(0,0,0,.08);
+            border-bottom: 1px solid rgba(0,180,231,.15);
         }
 
         #tablaAgentes tbody tr {
@@ -203,7 +203,7 @@
         }
 
         #tablaAgentes tbody tr:hover {
-            background-color: rgba(13,202,240,.07);
+            background-color: rgba(0,180,231,.07);
         }
 
         .dataTables_wrapper .dataTables_filter input,
@@ -214,81 +214,75 @@
         /* ============================================================
            TEMA VERDE
            rol = 5 Supervisor
-           Color principal: #a7c957
+           Color principal: #00CF78
            ============================================================ */
 
         body.vista-tema-verde {
-            background: #f4f8ec !important;
+            background: #E5FBF0 !important;
         }
 
         body.vista-tema-verde .page-header-card,
         body.vista-tema-verde .content-card {
-            background: #fbfdf6 !important;
-            border-color: rgba(167, 201, 87, .45) !important;
+            background: #ffffff !important;
+            border-color: rgba(0, 207, 120, .45) !important;
         }
 
         body.vista-tema-verde .page-title,
         body.vista-tema-verde .content-card-title,
         body.vista-tema-verde .modal-title {
-            color: #6f8f24 !important;
+            color: #00A863 !important;
         }
 
         body.vista-tema-verde .content-card-header,
         body.vista-tema-verde .modal-header {
-            background: rgba(167, 201, 87, .25) !important;
-            border-left-color: #a7c957 !important;
+            background: #E5FBF0 !important;
+            border-left-color: #00CF78 !important;
         }
 
         body.vista-tema-verde .btn-info-soft {
-            background-color: #a7c957 !important;
-            border-color: #a7c957 !important;
-            color: #1f2d0b !important;
+            background-color: #00CF78 !important;
+            border-color: #00CF78 !important;
+            color: #ffffff !important;
         }
 
         body.vista-tema-verde .btn-info-soft:hover {
-            background-color: #95b94c !important;
-            border-color: #95b94c !important;
-            color: #1f2d0b !important;
+            background-color: #00A863 !important;
+            border-color: #00A863 !important;
+            color: #ffffff !important;
         }
 
         body.vista-tema-verde .btn-outline-info-soft {
-            border-color: #a7c957 !important;
-            color: #6f8f24 !important;
+            border-color: #00CF78 !important;
+            color: #00A863 !important;
         }
 
         body.vista-tema-verde .btn-outline-info-soft:hover {
-            background-color: #a7c957 !important;
-            color: #1f2d0b !important;
+            background-color: #00CF78 !important;
+            color: #ffffff !important;
         }
 
         body.vista-tema-verde .form-control:focus,
         body.vista-tema-verde .form-select:focus {
-            border-color: #a7c957 !important;
-            box-shadow: 0 0 0 .2rem rgba(167, 201, 87, .25) !important;
+            border-color: #00CF78 !important;
+            box-shadow: 0 0 0 .2rem rgba(0, 207, 120, .25) !important;
         }
 
         body.vista-tema-verde .filtro-supervisor-card {
-            border-top-color: rgba(167, 201, 87, .45) !important;
+            border-top-color: rgba(0, 207, 120, .45) !important;
         }
 
         body.vista-tema-verde #tablaAgentes thead th {
-            background: rgba(167, 201, 87, .25) !important;
-            color: #6f8f24 !important;
+            background: #E5FBF0 !important;
+            color: #00A863 !important;
         }
 
         body.vista-tema-verde #tablaAgentes tbody tr:hover {
-            background-color: rgba(167, 201, 87, .12) !important;
-        }
-
-        body.vista-tema-verde .badge-farmacia,
-        body.vista-tema-verde .badge-supervisor {
-            background-color: #6f8f24 !important;
-            color: #ffffff !important;
+            background-color: rgba(0, 207, 120, .12) !important;
         }
 
         body.vista-tema-verde .badge.bg-info {
-            background-color: #a7c957 !important;
-            color: #1f2d0b !important;
+            background-color: #00CF78 !important;
+            color: #ffffff !important;
         }
 
         @media (max-width: 768px) {
@@ -1073,7 +1067,7 @@
         icon: '<%= swalIcon %>',
         title: '<%= swalTitle == null ? "" : swalTitle %>',
         text: '<%= swalText == null ? "" : swalText %>',
-        confirmButtonColor: '<%= usarTemaVerde ? "#a7c957" : "#0dcaf0" %>',
+        confirmButtonColor: '<%= usarTemaVerde ? "#00CF78" : "#00B4E7" %>',
         confirmButtonText: 'Aceptar'
     });
 </script>

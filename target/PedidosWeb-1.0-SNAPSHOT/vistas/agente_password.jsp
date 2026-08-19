@@ -47,7 +47,7 @@
 
     <style>
         body {
-            background: #f5f5f5;
+            background: #F2FBFE;
         }
 
         .page-wrapper {
@@ -57,45 +57,45 @@
         .page-header-card {
             background: #ffffff;
             border-radius: 18px;
-            border: 1px solid rgba(0,0,0,.06);
-            box-shadow: 0 0.125rem 0.45rem rgba(0,0,0,.06);
+            border: 1px solid rgba(0,180,231,.15);
+            box-shadow: 0 0.125rem 0.45rem rgba(0,180,231,.10);
             padding: 1.25rem;
             margin-bottom: 1.5rem;
         }
 
         .page-title {
-            color: #0dcaf0;
+            color: #00B4E7;
             font-weight: 800;
             margin-bottom: .15rem;
         }
 
         .page-subtitle {
-            color: #6c757d;
+            color: #0092BA;
             font-size: .95rem;
         }
 
         .content-card {
             background: #ffffff;
             border-radius: 18px;
-            border: 1px solid rgba(0,0,0,.06);
-            box-shadow: 0 0.125rem 0.45rem rgba(0,0,0,.06);
+            border: 1px solid rgba(0,180,231,.15);
+            box-shadow: 0 0.125rem 0.45rem rgba(0,180,231,.10);
             overflow: hidden;
         }
 
         .content-card-header {
-            background: rgba(13,202,240,.16);
-            border-left: 6px solid #0dcaf0;
+            background: #E8F8FD;
+            border-left: 6px solid #00B4E7;
             padding: 1rem 1.25rem;
         }
 
         .content-card-title {
-            color: #0dcaf0;
+            color: #00B4E7;
             font-weight: 700;
             margin: 0;
         }
 
         .content-card-subtitle {
-            color: #6c757d;
+            color: #0092BA;
             font-size: .875rem;
             margin: .15rem 0 0 0;
         }
@@ -105,29 +105,29 @@
         }
 
         .btn-info-soft {
-            background-color: #0dcaf0;
-            border-color: #0dcaf0;
+            background-color: #00B4E7;
+            border-color: #00B4E7;
             color: #ffffff;
             font-weight: 600;
             border-radius: .65rem;
         }
 
         .btn-info-soft:hover {
-            background-color: #31d2f2;
-            border-color: #25cff2;
+            background-color: #0092BA;
+            border-color: #0092BA;
             color: #ffffff;
         }
 
         .btn-light-soft {
-            background-color: #f8f9fa;
-            border-color: rgba(0,0,0,.08);
-            color: #6c757d;
+            background-color: #E8F8FD;
+            border-color: rgba(0,180,231,.20);
+            color: #0092BA;
             font-weight: 600;
             border-radius: .65rem;
         }
 
         .form-label {
-            color: #6c757d;
+            color: #0092BA;
             font-weight: 600;
         }
 
@@ -136,14 +136,14 @@
         }
 
         .form-control:focus {
-            border-color: #0dcaf0;
-            box-shadow: 0 0 0 .2rem rgba(13,202,240,.20);
+            border-color: #00B4E7;
+            box-shadow: 0 0 0 .2rem rgba(0,180,231,.20);
         }
 
         .password-rules {
-            background: #e8f9fd;
-            border: 1px solid rgba(13,202,240,.25);
-            color: #6c757d;
+            background: #E8F8FD;
+            border: 1px solid rgba(0,180,231,.25);
+            color: #0092BA;
             border-radius: .75rem;
             font-size: .9rem;
         }
@@ -152,56 +152,56 @@
            TEMA VERDE
            rol = 3 Agente de farmacia
            rol = 5 Supervisor
-           Color principal: #a7c957
+           Color principal: #00CF78
            ============================================================ */
 
         body.vista-tema-verde {
-            background: #f4f8ec !important;
+            background: #E5FBF0 !important;
         }
 
         body.vista-tema-verde .page-header-card,
         body.vista-tema-verde .content-card {
-            background: #fbfdf6 !important;
-            border-color: rgba(167, 201, 87, .40) !important;
+            background: #ffffff !important;
+            border-color: rgba(0, 207, 120, .40) !important;
         }
 
         body.vista-tema-verde .page-title,
         body.vista-tema-verde .content-card-title {
-            color: #6f8f24 !important;
+            color: #00A863 !important;
         }
 
         body.vista-tema-verde .content-card-header {
-            background: rgba(167, 201, 87, .25) !important;
-            border-left-color: #a7c957 !important;
+            background: #E5FBF0 !important;
+            border-left-color: #00CF78 !important;
         }
 
         body.vista-tema-verde .btn-info-soft {
-            background-color: #a7c957 !important;
-            border-color: #a7c957 !important;
-            color: #1f2d0b !important;
+            background-color: #00CF78 !important;
+            border-color: #00CF78 !important;
+            color: #ffffff !important;
         }
 
         body.vista-tema-verde .btn-info-soft:hover {
-            background-color: #95b94c !important;
-            border-color: #95b94c !important;
-            color: #1f2d0b !important;
+            background-color: #00A863 !important;
+            border-color: #00A863 !important;
+            color: #ffffff !important;
         }
 
         body.vista-tema-verde .btn-light-soft {
-            background-color: #eef6df !important;
-            border-color: rgba(167, 201, 87, .45) !important;
-            color: #1f2d0b !important;
+            background-color: #E5FBF0 !important;
+            border-color: rgba(0, 207, 120, .45) !important;
+            color: #00A863 !important;
         }
 
         body.vista-tema-verde .form-control:focus {
-            border-color: #a7c957 !important;
-            box-shadow: 0 0 0 .2rem rgba(167, 201, 87, .25) !important;
+            border-color: #00CF78 !important;
+            box-shadow: 0 0 0 .2rem rgba(0, 207, 120, .25) !important;
         }
 
         body.vista-tema-verde .password-rules {
-            background: #eef6df !important;
-            border-color: rgba(167, 201, 87, .45) !important;
-            color: #6c757d !important;
+            background: #E5FBF0 !important;
+            border-color: rgba(0, 207, 120, .45) !important;
+            color: #00A863 !important;
         }
 
         @media (max-width: 768px) {
@@ -318,7 +318,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    const colorConfirmacion = <%= usarTemaVerde ? "'#a7c957'" : "'#0dcaf0'" %>;
+    const colorConfirmacion = <%= usarTemaVerde ? "'#00CF78'" : "'#00B4E7'" %>;
 
     function validarPassword() {
         const passwordActual = document.getElementById('password_actual').value;
