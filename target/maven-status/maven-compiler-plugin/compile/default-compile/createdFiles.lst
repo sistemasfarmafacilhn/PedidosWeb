@@ -13,9 +13,11 @@ dao\AgenteDAO$ResultadoOperacion.class
 dao\AgenteDAO.class
 controladores\IndexController.class
 modelos\AlertaPedido.class
+controladores\SincronizarAgentesFarmaciaServlet.class
 utilidades\PasswordUtil.class
 dao\PedidoAsignadoDAO$ResultadoOperacion.class
 modelos\AsignacionPendienteResultado.class
 modelos\PedidoAsignado.class
 configDB\ConexionSQLServer.class
 modelos\FarmaciaSupervisor.class
+modelos\SolicitudTarjetaPlus.class

@@ -85,6 +85,13 @@ public class LoginController extends HttpServlet {
         sesion.setAttribute("rol", agente.getRol());
         sesion.setAttribute("StaffID", agente.getStaffID());
 
+        if (agente.isAgenteFarmacia()) {
+            String nombreFarmacia = agenteDAO.obtenerNombreFarmaciaPorStaffID(agente.getStaffID());
+            if (nombreFarmacia != null && !nombreFarmacia.trim().isEmpty()) {
+                sesion.setAttribute("nombreFarmacia", nombreFarmacia.trim());
+            }
+        }
+
         if (agente.getRol() == 1) {
             response.sendRedirect(request.getContextPath() + "/vistas/menu.jsp");
         } else if (agente.getRol() == 2) {

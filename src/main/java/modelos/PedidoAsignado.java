@@ -61,6 +61,8 @@ public class PedidoAsignado {
     private Timestamp fechaRecepcionLocal;
     private Timestamp fechaFinalizacion;
 
+    private SolicitudTarjetaPlus solicitudTarjetaPlus;
+
     private List<PedidoAsignadoDetalle> detalles = new ArrayList<>();
 
     public PedidoAsignado() {
@@ -408,6 +410,18 @@ public class PedidoAsignado {
 
     public void setFechaFinalizacion(Timestamp fechaFinalizacion) {
         this.fechaFinalizacion = fechaFinalizacion;
+    }
+
+    public SolicitudTarjetaPlus getSolicitudTarjetaPlus() {
+        return solicitudTarjetaPlus;
+    }
+
+    public void setSolicitudTarjetaPlus(SolicitudTarjetaPlus solicitudTarjetaPlus) {
+        this.solicitudTarjetaPlus = solicitudTarjetaPlus;
+    }
+
+    public boolean isTieneSolicitudTarjetaPlus() {
+        return solicitudTarjetaPlus != null;
     }
 
     public List<PedidoAsignadoDetalle> getDetalles() {

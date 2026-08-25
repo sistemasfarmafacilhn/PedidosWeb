@@ -15,6 +15,7 @@ import modelos.AlertaPedido;
 import modelos.AsignacionPendienteResultado;
 import modelos.PedidoAsignado;
 import modelos.PedidoAsignadoDetalle;
+import modelos.SolicitudTarjetaPlus;
 
 public class PedidoAsignadoDAO {
 
@@ -222,7 +223,39 @@ public class PedidoAsignadoDAO {
         pedido.setFechaRecepcionLocal(rs.getTimestamp("fecha_recepcion_local"));
         pedido.setFechaFinalizacion(rs.getTimestamp("fecha_finalizacion"));
 
+        pedido.setSolicitudTarjetaPlus(mapearSolicitudTarjetaPlus(rs));
+
         return pedido;
+    }
+
+    /**
+     * Mapea la solicitud de Tarjeta Plus asociada al pedido, cuando el pedido
+     * contiene alguno de los SKU de tarjeta (FF1005363 / FF1005364).
+     * Devuelve null si el pedido no tiene solicitud asociada.
+     */
+    private SolicitudTarjetaPlus mapearSolicitudTarjetaPlus(ResultSet rs) throws SQLException {
+
+        String solicitudOrderCode = rs.getString("SolicitudOrderCode");
+
+        if (rs.wasNull() || solicitudOrderCode == null || solicitudOrderCode.trim().isEmpty()) {
+            return null;
+        }
+
+        SolicitudTarjetaPlus solicitud = new SolicitudTarjetaPlus();
+
+        solicitud.setOrderCode(solicitudOrderCode);
+        solicitud.setCardSku(rs.getString("CardSku"));
+        solicitud.setTipoTarjeta(rs.getString("TipoTarjeta"));
+        solicitud.setFullName(rs.getString("FullName"));
+        solicitud.setIdentityDocument(rs.getString("IdentityDocument"));
+        solicitud.setEmail(rs.getString("Email"));
+        solicitud.setPhone(rs.getString("Phone"));
+        solicitud.setBirthdate(rs.getTimestamp("Birthdate"));
+        solicitud.setLocationDepartment(rs.getString("LocationDepartment"));
+        solicitud.setLocationCity(rs.getString("LocationCity"));
+        solicitud.setLocationAddress(rs.getString("LocationAddress"));
+
+        return solicitud;
     }
 
     /**

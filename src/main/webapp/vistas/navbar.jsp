@@ -3,6 +3,7 @@
 
 <%
     String nombre = "Invitado";
+    String nombreFarmacia = null;
     String ctx = request.getContextPath();
     String uri = request.getRequestURI();
 
@@ -20,6 +21,11 @@
         Object nombreSesion = session.getAttribute("nombre");
         if (nombreSesion != null) {
             nombre = nombreSesion.toString();
+        }
+
+        Object nombreFarmaciaSesion = session.getAttribute("nombreFarmacia");
+        if (nombreFarmaciaSesion != null && !nombreFarmaciaSesion.toString().trim().isEmpty()) {
+            nombreFarmacia = nombreFarmaciaSesion.toString().trim();
         }
 
         Object usuarioObj = session.getAttribute("usuarioObj");
@@ -140,7 +146,7 @@
             </ul>
 
             <div class="d-flex align-items-center gap-3 text-white navbar-user-info">
-                <span class="small fw-semibold">
+                <span class="small fw-semibold navbar-user-info-text">
                     <i class="bi bi-person-circle"></i> <%= nombre %>
 
                     <% if (esVistaTotal) { %>
@@ -153,6 +159,12 @@
                         <span class="badge badge-tema-verde-navbar ms-1">Agente de farmacia</span>
                     <% } else { %>
                         <span class="badge bg-light text-dark ms-1">Agente</span>
+                    <% } %>
+
+                    <% if (nombreFarmacia != null) { %>
+                        <div class="navbar-farmacia-nombre">
+                            <i class="bi bi-shop"></i> <%= nombreFarmacia %>
+                        </div>
                     <% } %>
                 </span>
 
@@ -168,6 +180,14 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
 <style>
+    .navbar-farmacia-nombre {
+        font-size: .72rem;
+        font-weight: 500;
+        opacity: .85;
+        line-height: 1.2;
+        margin-top: .1rem;
+    }
+
     .navbar-tema-verde {
         background-color: #00CF78 !important;
     }

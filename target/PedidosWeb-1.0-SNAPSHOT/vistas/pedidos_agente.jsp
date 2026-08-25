@@ -218,6 +218,128 @@
                 display: none !important;
             }
 
+            .modal-header-solicitud {
+                background: #E8F8FD;
+                border-left: 6px solid #00B4E7;
+            }
+
+            .modal-header-solicitud .modal-title {
+                color: #00B4E7;
+                font-weight: 700;
+            }
+
+            .btn-solicitud-tarjeta {
+                background: linear-gradient(135deg, #00B4E7, #00CF78);
+                border: none;
+                color: #ffffff;
+                font-weight: 700;
+                letter-spacing: .01em;
+                animation: pulseSolicitud 1.8s infinite;
+            }
+
+            .btn-solicitud-tarjeta:hover,
+            .btn-solicitud-tarjeta:focus {
+                color: #ffffff;
+                filter: brightness(1.08);
+            }
+
+            @keyframes pulseSolicitud {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(0, 180, 231, .45);
+                }
+                70% {
+                    box-shadow: 0 0 0 9px rgba(0, 180, 231, 0);
+                }
+                100% {
+                    box-shadow: 0 0 0 0 rgba(0, 180, 231, 0);
+                }
+            }
+
+            .solicitud-modal-body {
+                background: #F2FBFE;
+            }
+
+            .solicitud-section {
+                background: #ffffff;
+                border: 1px solid rgba(0, 180, 231, .15);
+                border-radius: .75rem;
+                padding: 1rem 1.1rem;
+                margin-bottom: .9rem;
+            }
+
+            .solicitud-section:last-child {
+                margin-bottom: 0;
+            }
+
+            .solicitud-section-title {
+                font-size: .72rem;
+                text-transform: uppercase;
+                letter-spacing: .05em;
+                font-weight: 700;
+                color: #00B4E7;
+                margin-bottom: .75rem;
+                display: flex;
+                align-items: center;
+                gap: .4rem;
+            }
+
+            .solicitud-fields-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: .1rem 1rem;
+            }
+
+            .solicitud-field {
+                margin-bottom: .65rem;
+            }
+
+            .solicitud-field.full {
+                grid-column: 1 / -1;
+            }
+
+            .solicitud-field .label {
+                font-size: .72rem;
+                color: #0092BA;
+                font-weight: 600;
+                margin-bottom: .1rem;
+            }
+
+            .solicitud-field .value {
+                font-size: .92rem;
+                font-weight: 600;
+                word-break: break-word;
+            }
+
+            .solicitud-field .value.empty {
+                color: #9db3ba;
+                font-weight: 400;
+                font-style: italic;
+            }
+
+            .modal-footer-solicitud {
+                background: #ffffff;
+                border-top: 1px solid rgba(0, 180, 231, .15);
+            }
+
+            .btn-inscribir {
+                background-color: #00CF78;
+                border-color: #00CF78;
+                color: #ffffff;
+                font-weight: 700;
+            }
+
+            .btn-inscribir:hover {
+                background-color: #00A863;
+                border-color: #00A863;
+                color: #ffffff;
+            }
+
+            @media (max-width: 480px) {
+                .solicitud-fields-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
             .acciones-footer {
                 padding-top: 12px;
                 padding-bottom: 4px;
@@ -308,6 +430,23 @@
 
             body.vista-farmacia .empty-state {
                 background: #ffffff;
+            }
+
+            body.vista-farmacia .modal-header-solicitud {
+                background: #E5FBF0 !important;
+                border-left-color: #00CF78 !important;
+            }
+
+            body.vista-farmacia .modal-header-solicitud .modal-title {
+                color: #00A863 !important;
+            }
+
+            body.vista-farmacia .solicitud-section-title {
+                color: #00A863 !important;
+            }
+
+            body.vista-farmacia .solicitud-field .label {
+                color: #00A863 !important;
             }
 
             @media (max-width: 576px) {
@@ -793,6 +932,15 @@
                                             </div>
                                         </div>
 
+                                        <% if (p.isTieneSolicitudTarjetaPlus()) { %>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-solicitud-tarjeta w-100 mt-2"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#solicitud_<%= collapseId %>">
+                                                <i class="bi bi-credit-card-2-front-fill"></i> Solicitud Tarjeta Plus
+                                            </button>
+                                        <% } %>
+
                                         <hr class="my-2">
 
                                         <div class="info-line">
@@ -1058,6 +1206,116 @@
 
                                 </div>
                             </div>
+
+                            <% if (p.isTieneSolicitudTarjetaPlus()) {
+                                modelos.SolicitudTarjetaPlus solicitud = p.getSolicitudTarjetaPlus();
+
+                                String stOrderCode = solicitud.getOrderCode() != null && !solicitud.getOrderCode().trim().isEmpty() ? solicitud.getOrderCode() : null;
+                                String stCardSku = solicitud.getCardSku() != null && !solicitud.getCardSku().trim().isEmpty() ? solicitud.getCardSku() : null;
+                                String stTipo = solicitud.getTipoTarjeta() != null && !solicitud.getTipoTarjeta().trim().isEmpty() ? solicitud.getTipoTarjeta() : null;
+                                String stNombre = solicitud.getFullName() != null && !solicitud.getFullName().trim().isEmpty() ? solicitud.getFullName() : null;
+                                String stIdentidad = solicitud.getIdentityDocument() != null && !solicitud.getIdentityDocument().trim().isEmpty() ? solicitud.getIdentityDocument() : null;
+                                String stCorreo = solicitud.getEmail() != null && !solicitud.getEmail().trim().isEmpty() ? solicitud.getEmail() : null;
+                                String stTelefono = solicitud.getPhone() != null && !solicitud.getPhone().trim().isEmpty() ? solicitud.getPhone() : null;
+                                String stFechaNac = solicitud.getBirthdate() != null ? new java.text.SimpleDateFormat("dd/MM/yyyy").format(solicitud.getBirthdate()) : null;
+                                String stDepto = solicitud.getLocationDepartment() != null && !solicitud.getLocationDepartment().trim().isEmpty() ? solicitud.getLocationDepartment() : null;
+                                String stCiudad = solicitud.getLocationCity() != null && !solicitud.getLocationCity().trim().isEmpty() ? solicitud.getLocationCity() : null;
+                                String stDireccion = solicitud.getLocationAddress() != null && !solicitud.getLocationAddress().trim().isEmpty() ? solicitud.getLocationAddress() : null;
+                            %>
+                                <div class="modal fade" id="solicitud_<%= collapseId %>" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                                        <div class="modal-content">
+                                            <div class="modal-header modal-header-solicitud">
+                                                <h6 class="modal-title">
+                                                    <i class="bi bi-credit-card-2-front-fill me-2"></i>Solicitud Tarjeta Plus
+                                                </h6>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                            </div>
+
+                                            <div class="modal-body solicitud-modal-body">
+
+                                                <div class="solicitud-section">
+                                                    <div class="solicitud-section-title">
+                                                        <i class="bi bi-file-earmark-text"></i> Datos de la solicitud
+                                                    </div>
+                                                    <div class="solicitud-fields-grid">
+                                                        <div class="solicitud-field">
+                                                            <div class="label">Código de solicitud</div>
+                                                            <div class="value <%= stOrderCode == null ? "empty" : "" %>"><%= stOrderCode != null ? stOrderCode : "Sin datos" %></div>
+                                                        </div>
+                                                        <div class="solicitud-field">
+                                                            <div class="label">SKU de tarjeta</div>
+                                                            <div class="value <%= stCardSku == null ? "empty" : "" %>"><%= stCardSku != null ? stCardSku : "Sin datos" %></div>
+                                                        </div>
+                                                        <div class="solicitud-field full">
+                                                            <div class="label">Tipo de trámite</div>
+                                                            <div class="value <%= stTipo == null ? "empty" : "" %>"><%= stTipo != null ? stTipo : "Sin datos" %></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="solicitud-section">
+                                                    <div class="solicitud-section-title">
+                                                        <i class="bi bi-person-badge"></i> Datos del solicitante
+                                                    </div>
+                                                    <div class="solicitud-fields-grid">
+                                                        <div class="solicitud-field full">
+                                                            <div class="label">Nombre completo</div>
+                                                            <div class="value <%= stNombre == null ? "empty" : "" %>"><%= stNombre != null ? stNombre : "Sin datos" %></div>
+                                                        </div>
+                                                        <div class="solicitud-field">
+                                                            <div class="label">Identificación</div>
+                                                            <div class="value <%= stIdentidad == null ? "empty" : "" %>"><%= stIdentidad != null ? stIdentidad : "Sin datos" %></div>
+                                                        </div>
+                                                        <div class="solicitud-field">
+                                                            <div class="label">Fecha de nacimiento</div>
+                                                            <div class="value <%= stFechaNac == null ? "empty" : "" %>"><%= stFechaNac != null ? stFechaNac : "Sin datos" %></div>
+                                                        </div>
+                                                        <div class="solicitud-field">
+                                                            <div class="label">Correo</div>
+                                                            <div class="value <%= stCorreo == null ? "empty" : "" %>"><%= stCorreo != null ? stCorreo : "Sin datos" %></div>
+                                                        </div>
+                                                        <div class="solicitud-field">
+                                                            <div class="label">Teléfono</div>
+                                                            <div class="value <%= stTelefono == null ? "empty" : "" %>"><%= stTelefono != null ? stTelefono : "Sin datos" %></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="solicitud-section">
+                                                    <div class="solicitud-section-title">
+                                                        <i class="bi bi-geo-alt"></i> Ubicación
+                                                    </div>
+                                                    <div class="solicitud-fields-grid">
+                                                        <div class="solicitud-field">
+                                                            <div class="label">Departamento</div>
+                                                            <div class="value <%= stDepto == null ? "empty" : "" %>"><%= stDepto != null ? stDepto : "Sin datos" %></div>
+                                                        </div>
+                                                        <div class="solicitud-field">
+                                                            <div class="label">Ciudad</div>
+                                                            <div class="value <%= stCiudad == null ? "empty" : "" %>"><%= stCiudad != null ? stCiudad : "Sin datos" %></div>
+                                                        </div>
+                                                        <div class="solicitud-field full">
+                                                            <div class="label">Dirección</div>
+                                                            <div class="value <%= stDireccion == null ? "empty" : "" %>"><%= stDireccion != null ? stDireccion : "Sin datos" %></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
+                                            <div class="modal-footer modal-footer-solicitud">
+                                                <a href="http://192.168.50.90:8080/FacturaExtranjero/cliente-hq"
+                                                   target="_blank"
+                                                   rel="noopener"
+                                                   class="btn btn-inscribir w-100">
+                                                    <i class="bi bi-box-arrow-up-right"></i> Inscribir
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% } %>
 
                             <%
                                 }

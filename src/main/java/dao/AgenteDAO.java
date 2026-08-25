@@ -555,6 +555,39 @@ public class AgenteDAO {
         return agente;
     }
 
+    /**
+     * Obtiene el nombre de la farmacia (sucursal) asociada a un StaffID,
+     * usando el SP_OBTENER_NOMBRE_FARMACIA (VW_FARMACIAS_SUPERVISOR).
+     *
+     * @param staffID StaffID del agente de farmacia.
+     * @return Nombre de la farmacia, o null si no se encuentra.
+     */
+    public String obtenerNombreFarmaciaPorStaffID(String staffID) {
+
+        if (staffID == null || staffID.trim().isEmpty()) {
+            return null;
+        }
+
+        String sql = "{ CALL dbo.SP_OBTENER_NOMBRE_FARMACIA(?) }";
+
+        try (Connection con = new ConexionSQLServer().getConnection();
+             CallableStatement cs = con.prepareCall(sql)) {
+
+            cs.setString(1, staffID.trim());
+
+            try (ResultSet rs = cs.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("NAME");
+                }
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+
     public List<FarmaciaSupervisor> listarFarmaciasPorSupervisor(String supervisor) {
 
         List<FarmaciaSupervisor> lista = new ArrayList<>();
