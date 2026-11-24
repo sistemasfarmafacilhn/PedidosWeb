@@ -1,6 +1,7 @@
 package controladores;
 
 import dao.AgenteDAO;
+import dao.MotivoCancelacionDAO;
 import dao.PedidoAsignadoDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,6 +17,7 @@ import java.util.List;
 import modelos.Agente;
 import modelos.AsignacionPendienteResultado;
 import modelos.FarmaciaSupervisor;
+import modelos.MotivoCancelacion;
 import modelos.PedidoAsignado;
 
 @WebServlet("/pedidos-agente")
@@ -206,9 +208,13 @@ public class PedidoAsignadoController extends HttpServlet {
             farmaciasSupervisor = agenteDAO.listarFarmaciasPorSupervisor(agente.getNombre());
         }
 
+        MotivoCancelacionDAO motivoDAO = new MotivoCancelacionDAO();
+        List<MotivoCancelacion> motivosCancelacion = motivoDAO.listarActivos();
+
         request.setAttribute("pedidos", pedidos);
         request.setAttribute("agentes", agentes);
         request.setAttribute("farmaciasSupervisor", farmaciasSupervisor);
+        request.setAttribute("motivosCancelacion", motivosCancelacion);
 
         request.setAttribute("staffID", staffID == null ? "" : staffID);
         request.setAttribute("staffIDFiltro", staffIDFiltro == null ? "" : staffIDFiltro);
@@ -250,7 +256,7 @@ public class PedidoAsignadoController extends HttpServlet {
         PedidoAsignadoDAO.ResultadoOperacion res = dao.cambiarEstadoPedido(
                 idControlPedido,
                 "CERRAR",
-                "Pedido cerrado por agente."
+                "Pedido Facturado"
         );
 
         manejarResultado(

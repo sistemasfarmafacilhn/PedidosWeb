@@ -120,6 +120,18 @@
 
                 <% } %>
 
+                <% if (puedeVerPedidosAdmin) { %>
+
+                    <li class="nav-item">
+                        <a class="nav-link <%= uri.contains("/reporte-pedidos-delivery") ? "active fw-semibold" : "" %>"
+                           href="<%= ctx %>/reporte-pedidos-delivery">
+                            <i class="bi bi-file-earmark-excel"></i>
+                            Reporte Delivery
+                        </a>
+                    </li>
+
+                <% } %>
+
                 <% if (puedeVerGestionAgentes) { %>
 
                     <li class="nav-item">

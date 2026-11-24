@@ -5,6 +5,7 @@
 <%@ page import="modelos.PedidoAsignadoDetalle" %>
 <%@ page import="modelos.Agente" %>
 <%@ page import="modelos.FarmaciaSupervisor" %>
+<%@ page import="modelos.MotivoCancelacion" %>
 <%@ page import="java.math.BigDecimal" %>
 
 <%
@@ -1182,6 +1183,7 @@
 
                                                             <button type="button"
                                                                     class="btn btn-outline-danger w-100"
+                                                                    data-tipo-entrega="<%= p.getDeliveryType() != null ? p.getDeliveryType() : "" %>"
                                                                     onclick="confirmarCancelarPedido(this)">
                                                                 Cancelar pedido
                                                             </button>
@@ -1372,6 +1374,30 @@
             const pollingPedidosActivo = <%= mostrarAccionesPedido ? "true" : "false" %>;
             const usarTemaVerde = <%= usarTemaVerde ? "true" : "false" %>;
             const colorPrincipal = usarTemaVerde ? "#00CF78" : "#00B4E7";
+
+            const MOTIVOS_CANCELACION = [
+                <%
+                    List<MotivoCancelacion> motivosCancelacion = (List<MotivoCancelacion>) request.getAttribute("motivosCancelacion");
+
+                    if (motivosCancelacion != null) {
+                        boolean primerMotivo = true;
+
+                        for (MotivoCancelacion m : motivosCancelacion) {
+                            if (!primerMotivo) {
+                %>,<%
+                            }
+                            primerMotivo = false;
+
+                            String descEscapada = m.getDescripcion() != null
+                                    ? m.getDescripcion().replace("\\", "\\\\").replace("\"", "\\\"")
+                                    : "";
+
+                            String tipoEscapado = m.getTipoEntrega() != null ? m.getTipoEntrega() : "pickup";
+                %>{ descripcion: "<%= descEscapada %>", tipo: "<%= tipoEscapado %>" }<%
+                        }
+                    }
+                %>
+            ];
 
             let ultimoIdControlPedido = 0;
             let verificandoNuevoPedido = false;
@@ -1625,17 +1651,22 @@
             function confirmarCancelarPedido(btn) {
                 const form = btn.closest("form");
                 const inputObservacion = form.querySelector(".observacionCancelacion");
+                const tipoEntrega = btn.dataset.tipoEntrega === "delivery" ? "delivery" : "pickup";
+
+                const opciones = MOTIVOS_CANCELACION.filter(m => m.tipo === tipoEntrega);
+
+                const inputOptions = {};
+                opciones.forEach(m => {
+                    inputOptions[m.descripcion] = m.descripcion;
+                });
 
                 Swal.fire({
                     title: "¿Cancelar pedido?",
-                    text: "Esta acción marcará el pedido como cancelado.",
+                    text: "Selecciona el motivo de la cancelación.",
                     icon: "warning",
-                    input: "textarea",
-                    inputLabel: "Motivo de cancelación",
-                    inputPlaceholder: "Ejemplo: Cliente no contestó, producto no disponible...",
-                    inputAttributes: {
-                        maxlength: 500
-                    },
+                    input: "select",
+                    inputOptions: inputOptions,
+                    inputPlaceholder: "Selecciona un motivo",
                     showCancelButton: true,
                     confirmButtonText: "Sí, cancelar",
                     cancelButtonText: "No",
@@ -1643,7 +1674,7 @@
                     cancelButtonColor: "#6c757d",
                     preConfirm: (value) => {
                         if (!value || value.trim() === "") {
-                            Swal.showValidationMessage("Debes ingresar un motivo de cancelación.");
+                            Swal.showValidationMessage("Debes seleccionar un motivo de cancelación.");
                             return false;
                         }
                         return value;

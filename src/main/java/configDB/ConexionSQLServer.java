@@ -14,7 +14,7 @@ import java.sql.SQLException;
  */
 public class ConexionSQLServer {
  
-    private static final String HOST = getenvOrDefault("DB_SQL_HOST", "localhost");
+    private static final String HOST = getenvOrDefault("DB_SQL_HOST", "192.168.50.90");
     private static final String PORT = getenvOrDefault("DB_SQL_PORT", "1433");
     private static final String DB   = getenvOrDefault("DB_SQL_NAME", "PedidosWeb");
     private static final String USER = getenvOrDefault("DB_SQL_USER", "sa");
